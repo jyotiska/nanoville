@@ -1,0 +1,3 @@
+Generated with the built-in imagegen tool. Exported as a 256 × 256 lossless WebP with transparency.
+
+Create one Nanoville game sprite: a seated judge in black robes with a white collar, holding a small wooden gavel. Match retro pixel-art characters with an oversized head, compact body, hard square pixels, dark outlines, and simple shaded colors. Three-quarter view facing toward the viewer, full figure and chair visible, centered in a square canvas with padding. Transparent background, no scenery, no text.

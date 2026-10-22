@@ -1,0 +1,174 @@
+# Compact paper summaries and development reference
+
+Prepared 13 October 2026. Condensed from [PAPER_SUMMARY.md](/Users/jyotiska/Documents/nanoville/PAPER_SUMMARY.md).
+
+This version retains the core methods, important implementation parameters, evaluation designs, principal results, and development implications. The detailed reference contains complete protocols, numerical appendices, demographic tables, page-by-page coverage, and the full register of reporting inconsistencies. Numbers below are reported results, not newly run experiments. Recommendations are explicitly labeled.
+
+## 1. What the three papers establish
+
+| Paper | Main question | Representation | Evidence |
+|---|---|---|---|
+| **Generative Agents: Interactive Simulacra of Human Behavior** (GA; Smallville, 2023) | Can fictional agents maintain coherent lives and coordinate socially? | Persona + evolving memories + reflections + plans | Human believability judgments and a two-day town simulation |
+| **Social Simulacra: Creating Populated Prototypes for Social Computing Systems** (SS; SimReddit, 2022) | Can generated conversations help designers explore possible community behavior? | Community goals/rules + personas + conversation context | Real/synthetic differentiation and designer interviews |
+| **Generative Agent Simulations of 1,000 People** (G1000; supplied archival manuscript) | Can interview-grounded agents predict specific real people's responses? | Full interview + expert reflections + task history | Individual answer comparisons, human retests, and five experiments |
+
+Plausibility, character coherence, answer prediction, and calibrated intervention effects are different targets. A combined architecture or replacement model must be evaluated directly; these papers do not validate every combination of their components.
+
+## 2. Generative Agents / Smallville
+
+Source: [GA PDF](/Users/jyotiska/Documents/nanoville/papers/2304.03442v2.pdf), especially PDF pp. 5–17 and appendices on pp. 21–22. [Detailed reference](/Users/jyotiska/Documents/nanoville/PAPER_SUMMARY.md#2-generative-agents--smallville).
+
+### Architecture and implementation
+
+The authors place **25 fictional residents** in a manually authored Phaser town, using **gpt-3.5-turbo**. Each starts with a paragraph describing identity, relationships, and interests; semicolon-separated clauses become initial memories.
+
+**Memory:** store observations, plans, and reflections as natural-language records. Records have creation/access timestamps. Retrieval combines:
+
+- **Recency:** exponential decay `0.995 ^ hours_since_last_access`, using simulated hours and last retrieval/access rather than creation alone.
+- **Importance:** an LLM-assigned score from 1 to 10.
+- **Relevance:** cosine similarity between query and memory embeddings.
+
+Min–max normalize each component to [0,1], add them with equal weights of 1, and include the highest-ranked records that fit the prompt budget. The embedding model and exact budget policy are not specified.
+
+**Reflection:** when accumulated importance of recent observations exceeds **150**, use the **100 latest records** to generate **three salient questions**. Retrieve evidence for each, derive **five insights** per question, and store reflections with supporting-memory pointers. Reflections can build on earlier reflections. Agents reflect approximately two or three times daily; this is observed frequency, not a fixed timer.
+
+**Planning:** draft roughly five to eight daily chunks, decompose into hour-level activities, then **5–15-minute actions**. Save start time, duration, and location. Refine the near future just in time. New observations can trigger reactions and replanning. Dialogue uses each speaker's own retrieved relationship/context memories and conversation history until an agent ends the exchange.
+
+**World grounding:** a server maintains locations, activities, and object states in JSON. A containment tree represents places, subareas, and objects. Residents retain their own known subgraphs, which can become stale. The model selects destinations recursively; ordinary pathfinding handles movement. Model calls infer object-state changes. Users can converse, embody a character, influence an agent as its “inner voice,” or change an object's state.
+
+Cached identity/occupation/progress summaries reduce repeated work. Parallel agents, joint dialogue generation, and selective plan invalidation are proposed optimizations rather than demonstrated performance guarantees.
+
+### Tests and results
+
+**Controlled evaluation:** 100 U.S. adult Prolific evaluators inspect a resident's replay/history and rank responses from five conditions. The question pool has **25 probes**, covering self-knowledge, memory, plans, reactions, and reflections. Conditions use observations/plans/reflections, observations/plans, observations only, no memory-stream information, or crowdworker-written answers.
+
+The ablations withhold memory types when answering using histories generated by the full architecture; they do not independently simulate each variant's town.
+
+| Condition | TrueSkill mean |
+|---|---:|
+| Full architecture | 29.89 |
+| No reflection | 26.88 |
+| No reflection or planning | 25.64 |
+| Crowdworker | 22.95 |
+| No observation, reflection, or planning | 21.21 |
+
+Kruskal–Wallis: `H(4)=150.29`, `p<0.001`; Dunn comparisons with Holm–Bonferroni correction favor the stronger conditions, except the crowdworker/fully ablated difference is not significant. These are believability rankings, not predictive-accuracy percentages or a comparison against expert-human performance.
+
+**Two-day community evaluation:** verify news knowledge against conversation memories, measure mutual-recognition graph density, and count party arrivals.
+
+- Election knowledge: **1 → 8 of 25** residents.
+- Party knowledge: **1 → 13 of 25**.
+- Mutual-recognition density: **0.167 → 0.74**.
+- Unsupported acquaintance claims: **6 of 453**, or 1.3%.
+- Party attendance: **5 of 12 invited**; three others cite conflicts and four express interest without planning attendance.
+
+The party intention and Maria's crush on Klaus are authored seeds; downstream interactions are generated.
+
+**Limits:** memory retrieval misses, invented details, mistaken identities, repeated or missed commitments, misunderstood occupancy/opening hours, excessive politeness, and persona drift. The run covers only two game days and costs thousands of dollars over multiple real days. Believability does not establish accurate human prediction. The authors also discuss emotional attachment, biased behavior, misuse, and retaining real human participation in design.
+
+## 3. Social Simulacra / SimReddit
+
+Source: [SS PDF](/Users/jyotiska/Documents/nanoville/papers/3526113.3545616.pdf), especially PDF pp. 4–16. [Detailed reference](/Users/jyotiska/Documents/nanoville/PAPER_SUMMARY.md#3-social-simulacra--simreddit).
+
+### Method and controls
+
+SimReddit prototypes communities before real users populate them. Designers supply a **goal, rules, and ten seed personas by default**; original **GPT-3 davinci** expands the population to **1,000 personas by default**, then produces posts and replies. Behavioral personas specify interests and tendencies; the interface avoids demographic persona inputs. Rules nudge output rather than guarantee compliance.
+
+Three features support exploration:
+
+- **Generate:** populate a community and regenerate after changing its design.
+- **WhatIf:** branch a conversation with another persona or a moderator intervention.
+- **Multiverse:** generate alternatives from the same starting point to expose uncertainty.
+
+The prompt repeats community constraints in persona descriptions and HTML-tag metadata. Generation stops at `</span>`. Historical input capacity is roughly **8,000 characters**; long conversations are truncated from the beginning. `max_200_words` is a prompt cue, not an independently enforced limit.
+
+For reply generation, sample a thread continuation probability from a normal distribution with **mean 0.65**; its numerical deviation and out-of-range handling are unspecified. Choose a new responder with **50% probability**, otherwise reuse a prior participant excluding the latest speaker. The wording stops after conversation length exceeds eight replies, leaving a boundary ambiguity. Temperature is **0.7**, raised to **0.8** for Multiverse. This architecture does not include Smallville-style daily plans and lifetime memories.
+
+### Tests and results
+
+**Technical study:** sample **50 English-language subreddits created after GPT-3's release**. Each evaluator browses community context, then distinguishes real from synthetic conversations across **100 comparisons**. Real threads are older, text-only conversations with at least three replies, truncated to five where necessary.
+
+**200 evaluators**, 50 per condition, compare full SimReddit, no community description, no personas, and crowdworker content. One-way ANOVA plus Tukey HSD evaluates error rates.
+
+| Condition | Misidentification error |
+|---|---:|
+| Full SimReddit | 41% |
+| Crowdworker | 32% |
+| No community description | 21% |
+| No personas | 34% in the table; 33% in prose |
+
+Random guessing produces 50% error; higher error means harder-to-distinguish synthetic content. Omnibus `F(3,196)=22.49`, `p<0.001`. The full system outperforms other conditions on this plausibility measure; it does not predict future behavior probabilities.
+
+**Designer study:** 16 experienced community designers/moderators draft a subreddit, review generated content using think-aloud, revise goals/rules, and rehearse interventions using alternative troll responses. All describe useful insights; generated examples reveal unexpected positive uses, harassment patterns, and moderation choices. Qualitative open coding identifies themes. The study does not measure outcomes in launched communities.
+
+**Limits:** plausible scenarios are neither exhaustive nor calibrated forecasts. Missing harmful scenarios can create false confidence. Model knowledge gaps, English/cultural scope, context truncation, and bias matter. Likes, shares, ranking, and other platform mechanics are outside the evaluated implementation. The authors recommend accountable access/logging and continued engagement with real community members.
+
+## 4. Generative Agent Simulations of 1,000 People
+
+Source: [G1000 PDF](/Users/jyotiska/Documents/nanoville/papers/Generative-Agent-Simulations-of-1000-People-archive.pdf), main text pp. 1–9, methods pp. 14–40, tables pp. 41–65. [Detailed reference](/Users/jyotiska/Documents/nanoville/PAPER_SUMMARY.md#4-generative-agent-simulations-of-1000-people).
+
+### Grounding and architecture
+
+Recruit **1,052 U.S. adults** through demographic stratification. Each completes an approximately **two-hour AI interview** based on the American Voices Project, then assessments, and repeats assessments **two weeks later**. Mean interview response length is approximately **6,491 words**.
+
+The AI interviewer uses scripted question/time budgets, adaptive follow-ups, and reflection notes plus the most recent **5,000 characters**. GPT-4o produces follow-ups/reflections; speech recognition and synthesis support voice interaction.
+
+Predictive agents receive the **entire transcript**, supplemented with saved LLM-generated reflections from four perspectives: psychologist, behavioral economist, political scientist, and demographer. For a target question, choose the relevant expert domain and append its reflections. Sequential tasks also append prior stimuli and responses. These are model-generated perspectives, not human-expert annotations or separately trained personal models.
+
+### Assessment battery and metrics
+
+- **GSS:** 177 categorical/ordinal questions plus six separately analyzed numerical questions.
+- **BFI-44:** reverse-code specified items and aggregate into five personality dimensions.
+- **Economic games:** dictator, trust first mover, trust second mover, public goods, and prisoner's dilemma, with monetary incentives for humans.
+- **Experiments:** intent/blame (Ames & Fiske), fairness/emotion (Cooney), conflict intervention (Halevy & Halali), dehumanization/harm (Rai), and power/trust (Schilke).
+
+Main metrics are calculated per person, then aggregated. Categorical accuracy requires exact answers; numerical outcomes use MAE and correlations. Correlations use Fisher-z aggregation. Normalized accuracy divides agent accuracy by the person's test–retest accuracy; normalized correlations use retest correlations. Ratios can exceed 1 or become unstable. Normalized MAE is omitted because human retest error can be zero.
+
+### Main findings
+
+| Metric | Human retest | Interview | Demographics | Brief persona |
+|---|---:|---:|---:|---:|
+| GSS raw accuracy | 81.25% | 68.85% | 57.00% | 56.79% |
+| GSS normalized accuracy | 1.00 | 0.85 | 0.71 | 0.70 |
+| Personality MAE | 0.30 | 0.67 | 0.76 | 0.74 |
+| Personality correlation | 0.95 | 0.78 | 0.61 | 0.71 |
+| Games MAE | 0.25 | 0.32 | 0.34 | 0.33 |
+| Games correlation | 0.99 | 0.66 | 0.57 | 0.60 |
+
+**The headline 85% is relative to human answer repeatability; raw categorical accuracy is approximately 69%.** It does not mean predicting 85% of all behavior.
+
+ANOVA/Tukey results favor interview grounding for GSS and personality. Economic games show no significant architecture difference on MAE (`p=0.89`) or correlation (`p=0.120`). Between-person correlations for individual games are only **0.11, 0.08, 0.03, −0.05, and 0.10**, respectively. Those weak construct-level results must accompany the favorable within-person aggregate.
+
+Human participants replicate four of five experiments and fail to replicate Rai; interview agents match that pattern. Effect-size correlation is **0.98**, 95% CI **[0.74,0.99]**, across five studies. Magnitudes are often exaggerated: Schilke's human effect is **d=0.33**, versus **2.97** for interview agents. High correlation does not guarantee calibrated effects.
+
+### Robustness, disparities, and limits
+
+On a **100-agent exploratory sample**, compare interview grounding with structured survey/game answers, combined data, factual transcript summaries, and random interview lesions. Exclude target-category answers from structured-data agents to reduce direct retrieval leakage.
+
+GSS normalized accuracy: interview **0.85**, survey/experiment data **0.76**, combined **0.85**, factual summary **0.83**, and **0.79** after removing 80% of interview pairs. Randomly retained material distributed through a two-hour interview does not validate a purpose-designed 24-minute interview.
+
+Interview grounding reduces several performance disparities: political-ideology GSS gap decreases from **12.35 to approximately 7.86 percentage points**, racial gap from **3.33 to 2.08**. Not every subgroup gap improves. DPD describes performance differences here; it is not proof of unbiased representation.
+
+The evidence covers selected assessments and known experiments, not long-term conduct, new domains, or interacting populations. The proposed bank provides aggregated fixed-task access and reviewed individual/open-task access, with consent, withdrawal, research-use restrictions, and auditability. Current operational access was not verified.
+
+## 5. Development guidance and replication cautions
+
+**Recommendations below are derived from the papers; they are not additional published experiments.**
+
+| Development goal | Components to consider | Validation priorities |
+|---|---|---|
+| Continuing fictional town | GA memory, reflection, planning, local perception, grounded world actions | Identity consistency, schedule execution, valid actions, information diffusion, actual attendance |
+| Community design exploration | SS goal/rule conditioning, diverse personas, WhatIf, Multiverse | Scenario diversity, blinded plausibility, designer usefulness, missed cases, real-world follow-up |
+| Real-person prediction | G1000 consented interviews, task memory, expert reflections | Held-out answers, raw/retest-normalized metrics, item-level performance, effect calibration, privacy |
+
+Record stable memory IDs, timestamps, provenance, reflection evidence, planned versus executed actions, agent beliefs versus authoritative world state, and model/prompt versions. Keep generated interpretations separate from observed facts. Measure latency, call counts, and cost alongside behavioral quality. Changing to a local Ollama model requires a new evaluation.
+
+Prioritize tests for retrieval misses, unsupported reflections, repeated routines, replanning, stale beliefs, occupied/closed locations, information leakage, false memories, persona drift, and unexecuted commitments. For predictive systems, prevent benchmark leakage, retain subgroup sizes and undefined-denominator handling, and report both within-person and between-person results.
+
+**Replication issues worth resolving first:**
+
+- **GA:** embedding model, prompt budgets, cache-refresh interval, visual range, and universal dialogue limits are not fully specified.
+- **SS:** continuation deviation/range handling and reply-count boundary are unspecified; some table/prose results and participant counts differ.
+- **G1000:** the methods say 99 scripted questions, while the printed protocol contains 109 question rows plus opening/closing. Some reported correlation/dispersion values and repeated regression p-value notes require verification. Exact instruments/scoring rules, model snapshot, generation settings, and missing-data policies are not fully supplied.
+
+For implementation details, use [the full architecture sections](/Users/jyotiska/Documents/nanoville/PAPER_SUMMARY.md). For reproduction, consult its [inconsistency register](/Users/jyotiska/Documents/nanoville/PAPER_SUMMARY.md#7-reporting-inconsistencies-and-replication-gaps), [interview probes](/Users/jyotiska/Documents/nanoville/PAPER_SUMMARY.md#appendix-a-smallville-interview-test-inventory), [interview protocol](/Users/jyotiska/Documents/nanoville/PAPER_SUMMARY.md#appendix-c-real-person-interview-protocol-inventory), and [complete numerical tables](/Users/jyotiska/Documents/nanoville/PAPER_SUMMARY.md#appendix-d-complete-supplementary-numerical-table-transcriptions).

@@ -1,0 +1,62 @@
+{
+  "software-engineer": {
+    "sprite": "engineer",
+    "color": "#d4eee7"
+  },
+  "product-manager": {
+    "sprite": "product-manager",
+    "color": "#f4dfbd"
+  },
+  "ux-designer": {
+    "sprite": "designer",
+    "color": "#f3d9df"
+  },
+  "data-scientist": {
+    "sprite": "data-scientist",
+    "color": "#dfe4fb"
+  },
+  "cybersecurity-analyst": {
+    "sprite": "security-analyst",
+    "color": "#dbe8f5"
+  },
+  "devops-engineer": {
+    "sprite": "devops-engineer",
+    "color": "#d9ecdd"
+  },
+  "startup-founder": {
+    "sprite": "founder",
+    "color": "#f7dfb9"
+  },
+  "venture-capitalist": {
+    "sprite": "investor",
+    "color": "#e5e0f2"
+  },
+  "marketing-strategist": {
+    "sprite": "marketer",
+    "color": "#f6d8cb"
+  },
+  "sales-executive": {
+    "sprite": "sales-executive",
+    "color": "#d7e9f4"
+  },
+  "business-analyst": {
+    "sprite": "business-analyst",
+    "color": "#e4e8cf"
+  },
+  "finance-controller": {
+    "sprite": "finance-controller",
+    "color": "#e9e3ce"
+  },
+  "people-leader": {
+    "sprite": "people-leader",
+    "color": "#f0dce9"
+  },
+  "operations-manager": {
+    "sprite": "operations-manager",
+    "color": "#dce8d4"
+  },
+  "customer-success-manager": {
+    "sprite": "customer-success",
+    "color": "#f2e1c8"
+  }
+}

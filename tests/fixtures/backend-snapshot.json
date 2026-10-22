@@ -1,0 +1,79 @@
+{
+  "id": "f8182d1d-731c-40ce-9973-48d2be550198",
+  "revision": 0,
+  "engineVersion": "discussion-v23-python1",
+  "config": {
+    "scenarioId": "ai-feature-launch",
+    "participantIds": [
+      "software-engineer",
+      "product-manager"
+    ],
+    "model": "qwen3.5:4b-mlx",
+    "maxTurns": 5,
+    "judgeEnabled": false
+  },
+  "scenario": {
+    "id": "ai-feature-launch",
+    "title": "Launch an AI reply helper",
+    "summary": "Choose what to release and when a person should step in.",
+    "problem": "A support company is preparing a reply-drafting assistant for its agents. In internal demos it handles routine questions well, but it sometimes gives an outdated answer, misses the customer’s actual concern, or includes information from the wrong account. The support team wants to try it during a busy period; security and legal reviewers want clearer safeguards before customer data is sent through the system. Agents are also concerned that a draft tool could add review work instead of saving time. The team has limited engineering capacity and must decide which request types are suitable for an initial trial, what the assistant may see, and what must always remain a human decision.",
+    "guidelines": [
+      "Separate demonstrated behavior from assumptions, and name the evidence still needed before a wider release.",
+      "Choose a narrow first group of request types; identify cases the assistant must refuse or hand to an agent.",
+      "Set human-review rules for sensitive, unusual, or low-confidence replies, and make it easy for agents to correct a draft.",
+      "Cover customer-data access, retention, and handling of information from other accounts.",
+      "Agree how to test quality and privacy, gather agent feedback, and pause the trial if harm or extra workload appears."
+    ],
+    "deliverable": "A staged launch brief covering the trial audience and eligible request types, exclusions and review rules, data safeguards, owners, success and safety measures, and clear pause or expansion criteria.",
+    "suggestedAgents": [
+      "product-manager",
+      "software-engineer",
+      "cybersecurity-analyst",
+      "data-scientist",
+      "customer-success-manager"
+    ],
+    "collection": "nanoville"
+  },
+  "agents": [
+    {
+      "id": "software-engineer",
+      "name": "Riley Chen",
+      "role": "Software engineer",
+      "description": "Turns tangled technical problems into reliable, well-shaped software. Riley values thoughtful reviews and leaves systems easier to understand than they found them.",
+      "traits": [
+        "Analytical",
+        "Patient",
+        "Pragmatic"
+      ],
+      "mood": "focused",
+      "energy": 78,
+      "confidence": 82,
+      "collection": "nanoville"
+    },
+    {
+      "id": "product-manager",
+      "name": "Jordan Brooks",
+      "role": "Product manager",
+      "description": "Connects customer needs, business goals, and engineering realities. Jordan is at their best when a team can agree on what matters most.",
+      "traits": [
+        "Clear-minded",
+        "Collaborative",
+        "Decisive"
+      ],
+      "mood": "curious",
+      "energy": 74,
+      "confidence": 79,
+      "collection": "nanoville"
+    }
+  ],
+  "status": "ready",
+  "turns": [],
+  "canvas": "",
+  "endedEarly": false,
+  "finalJudgement": null,
+  "pending": null,
+  "error": "",
+  "errorCode": null,
+  "createdAt": "2026-10-22T08:00:39.622579+00:00",
+  "updatedAt": "2026-10-22T08:00:39.622584+00:00"
+}
