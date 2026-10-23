@@ -29,3 +29,12 @@ Started the production application on http://localhost:43188 with real Chorus an
 The full automated check passed again: six component/client tests and eight browser tests, plus lint, types, and production build. Automated browser tests use fake Ollama and do not cover model reliability.
 
 Screenshots are saved under `output/browser-tests/`, including `reply-helper-result.jpg`, `outage-review-paused.jpg`, and `outage-document-status.jpg`.
+
+## Judge model compatibility — 23 October 2026
+
+All catalog models can use the judge, including MLX runners that do not enforce structured output. Chorus retains the selected model, validates individual short answers when necessary, and assembles the same committed review contract. Existing sessions remain readable and exportable; start a new discussion after the engine update.
+
+- Full frontend verification passed: lint, type checks, production build, seven component/client tests, and eight browser journeys. The 20-turn MLX journey completed three checkpoints and one final judgement through real Chorus with fake Ollama.
+- Live checkpoint and final reviews passed with all five installed catalog models: Qwen 3 4B, Qwen 3.5 MLX 0.8B/2B/4B, and Gemma 4 E2B MLX. Each MLX model also passed an empty-canvas final review. Gemma 4 E4B MLX was not installed and was not tested live.
+- An isolated copy of the five-slot pricing discussion resumed through a real Qwen 0.8B MLX checkpoint, then committed an early-stop final review incorporating the published checkpoint feedback. Its participant slots and canvas remained unchanged; the original user session was preserved.
+- The Chorus backend suite passed 97 tests covering compatibility, evidence validation, retries, cancellation, context budgets, token accounting, and recovery without repeated participant turns. No partial review is published if generation fails or is cancelled.
