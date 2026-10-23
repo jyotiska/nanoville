@@ -16,7 +16,7 @@ test.beforeEach(async ({ request }) => {
   await request.post(`${modelHost}/reset`, { data: {} });
 });
 
-test("a 20-turn 2B discussion completes three checkpoints and one final judgement", async ({ page, request }) => {
+test("a 20-turn discussion completes three checkpoints and one final judgement", async ({ page, request }) => {
   test.setTimeout(60000);
   await page.goto("/");
   await page.getByLabel("Ollama model").selectOption("qwen3.5:2b-mlx");
@@ -136,7 +136,7 @@ test("reload restores a paused durable session without starting duplicate work",
   expect(after.turns).toEqual(before.turns);
 });
 
-test("opens and controls a session created outside Nanoville", async ({ page, request }) => {
+test("opens and controls a session created outside nanoville", async ({ page, request }) => {
   const options = await (await request.get("/api/chorus/scenarios?collection=chorus-web")).json();
   const scenario = options.find((s: { id: string }) => s.id === "chorus-web:debate");
   const created = await (await request.post("/api/chorus/sessions", { data: { scenarioId: scenario.id, participantIds: scenario.suggestedAgents, model: "qwen3.5:4b-mlx", maxTurns: 5, judgeEnabled: false } })).json();

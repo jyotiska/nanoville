@@ -1,43 +1,230 @@
-# Nanoville
+# nanoville
 
-Nanoville depends on [Chorus](https://github.com/jyotiska/chorus), the independent research framework that runs its agent simulations, model calls, shared-document edits, judge reviews, and persistent sessions. Nanoville uses Chorus’s APIs to set up and control discussions and display conversations, documents, and observer journals.
+<p align="center">
+  <img src="public/nanoville-logo-horizontal.png" alt="nanoville logo" width="520" />
+</p>
 
-Nanoville is a small scenario studio where business and technology personas work through shared challenges in a pixel-art scene.
+<p align="center">
+  <img src="public/nanoville-image.png" alt="nanoville discussion scene with pixel-art participants and shared canvas" width="1000" />
+</p>
 
-## Getting Started
+nanoville is a local scenario studio where business and technology personas work through a shared challenge in a pixel-art scene. It depends on [Chorus](https://github.com/jyotiska/chorus), the research framework that runs agent simulations, model calls, shared-document edits, judge reviews, and persistent sessions. nanoville calls Chorus to set up and control a discussion, then displays the conversation, the shared document, and observer journals.
 
-Use Node 24 (see `.nvmrc`) and npm. Install the locked dependencies and start development:
+Three processes run together:
+
+| Process | Port | Role |
+| --- | --- | --- |
+| Ollama | 11434 | Local model inference |
+| Chorus | 43187 | Execution, validation, scheduling, and SQLite sessions |
+| nanoville | 43188 | Setup, scene, and panels |
+
+## Run nanoville
+
+nanoville does not call Ollama itself. Start Ollama, then Chorus, then this app. Chorus must already be checked out as a sibling of this repository (`../chorus`).
+
+### Requirements
+
+- Node.js 24 (see `.nvmrc`) and npm
+- Python 3.11 or newer, for Chorus
+- [Ollama](https://ollama.com) running locally, with at least one catalog model installed
+- A Unix-like environment; Chorus uses file locking for its SQLite store
+
+### 1. Start Ollama and install a model
+
+Start the Ollama app or service so it listens on `http://localhost:11434`. Install a model from the Chorus catalog. The studio defaults to `qwen3:4b`, which supports the structured responses needed for judge reviews.
 
 ```bash
+ollama pull qwen3:4b
+```
+
+Other catalog IDs are `qwen3.5:0.8b-mlx`, `qwen3.5:2b-mlx`, `qwen3.5:4b-mlx`, `gemma4:e2b-mlx`, and `gemma4:e4b-mlx`. Chorus reports which of these are installed and does not download or substitute a model. If Ollama runs on another host or port, set `OLLAMA_HOST` in the Chorus environment before starting the backend.
+
+### 2. Install and start Chorus
+
+From the Chorus checkout:
+
+```bash
+cd ../chorus
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e '.[dev]'
+cp -n .env.example .env
+chorus serve
+```
+
+Leave this process running. It binds to the loopback interface and owns the session database.
+
+- API: [http://127.0.0.1:43187](http://127.0.0.1:43187)
+- Interactive docs: [http://127.0.0.1:43187/docs](http://127.0.0.1:43187/docs)
+- Health: [http://127.0.0.1:43187/health](http://127.0.0.1:43187/health)
+
+Confirm the model is visible before opening the studio:
+
+```bash
+source .venv/bin/activate
+chorus catalog models
+```
+
+Run one Chorus process per database. The default store is `~/.local/share/chorus/sessions.sqlite3`. Chorus’s `docs/running-chorus.md` covers `CHORUS_DB`, `CHORUS_CATALOG`, pacing, and CLI session controls.
+
+### 3. Install and start nanoville
+
+In a second terminal, from this repository:
+
+```bash
+nvm use
 npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-Start Chorus in the sibling `chorus/` directory (`.venv/bin/chorus serve`). Copy `.env.example` to `.env.local` to configure `CHORUS_API_URL`. Open [http://localhost:43188](http://localhost:43188) with your browser to see the result.
+`.env.example` sets `CHORUS_API_URL=http://127.0.0.1:43187`. Change that value only when Chorus is served on another address, then restart `npm run dev`. The variable is read by the Next.js server; the browser never talks to Chorus or Ollama directly.
 
-The page composition lives in `src/components/scenario-studio.tsx`; its sections live in `src/components/studio/`. The page updates automatically during development.
+Open [http://localhost:43188](http://localhost:43188). The first screen stays on “Connecting to Chorus…” until the catalog loads. If Chorus is down, the page shows the connection error and a retry button. Start the backend, then retry.
+
+### 4. Start a discussion
+
+On the setup screen:
+
+1. Choose a challenge. The page fills in that scenario’s suggested team.
+2. Keep 2–5 participants.
+3. Choose a location. Locations are presentation only and do not change the scenario.
+4. Choose an installed local model.
+5. Choose a length of 5, 10, 20, 50, 75, or 100 turns. The default is 20.
+6. Leave Judge on No, or set it to Yes for checkpoint reviews.
+7. Choose **Enter discussion**. The session is created and started immediately.
+
+Pause, Resume, and Stop are on the scene. **Back to setup** pauses a running session and clears the remembered session in this browser. Closing the tab leaves Chorus running; reopen the app to restore the same session.
+
+To watch a session created by the Chorus CLI or another client, open `http://localhost:43188/?session=SESSION_ID`.
+
+### Production
+
+```bash
+npm run build
+npm start
+```
+
+`npm start` also serves [http://localhost:43188](http://localhost:43188) and still requires Chorus and Ollama.
 
 ## Discussions
 
-Choose a challenge, 2–5 agents, a location, a local model, and a turn limit of 5, 10, 20, 50, 75, or 100 on the setup screen. Entering the scene starts the discussion automatically. Each turn is one participant’s scheduled slot, including any slot skipped after repeated invalid replies.
+### Setup and scene
 
-The conversation appears on the right with the latest reply first, fills the scene column’s height, and scrolls within the panel. All agents read and revise one shared Markdown document beneath the scene. Each turn advances the requested deliverable with a useful discussion contribution and, when needed, a canvas revision. If there is no substantive edit, the existing canvas is preserved and the discussion continues. Agents build on existing work, address missing requirements, and clearly label proposals and unresolved decisions. The canvas renders the full document and is read-only for the user. Click an agent or their name badge to see their profile; dismiss it with the close button, Escape, or by clicking outside.
+Entering the scene starts the discussion. Each turn is one participant’s scheduled slot, including a slot skipped after repeated invalid replies. The conversation sits on the right, newest reply first, fills the scene column, and scrolls inside the panel. Click an agent or their name badge to open a profile. Dismiss it with the close button, Escape, or a click outside.
 
-The server requests one compact JSON canvas operation, then the spoken contribution, without relying on model tool-call support. A participant can create the initial document while the canvas is empty, return `{"op":"UNCHANGED"}`, replace one existing section's direct body, or append one child section. Creation remains available on later turns if earlier attempts failed or were skipped. Heading paths include every ancestor, including the document title; repeated names under different parents are valid. Missing or ambiguous targets and duplicate sibling headings are rejected. Replacement preserves its heading, child sections, and siblings. Append inserts after the parent's existing descendants; an empty parent path appends a level-one section at the document root. Bodies cannot introduce headings, raw HTML, or unclosed code fences. Chorus uses a Python Markdown parser and splices source to preserve untouched Markdown; parity tests cover the original Nanoville section-edit cases. The browser receives the complete validated canvas and never applies patches.
+### Shared canvas
 
-The server preserves the supplied scenario evidence verbatim outside the editable document; models cannot target or recreate its section. It validates the reconstructed complete canvas for empty, heading-only, oversized, or repeated content and unsupported factual confirmations. Changed canvases remain bounded to 800 words and 6,000 characters; initial plans target 350–500 words and typical section edits target about 200 output tokens. Near the size limit, participants should shorten an existing section or leave it unchanged. Cosmetic replacements are normal no-edit turns and preserve the exact original document. These grounding checks reduce unsupported assertions but do not prove every statement true. New dates, rules, owners, measures, and product capabilities must remain proposals or open decisions; unavailable incident times and measurements remain unknown. Missing information becomes a proposed real-world validation task with an owner, completion check, and fallback.
+Every participant reads and revises one shared Markdown document under the scene. A turn adds a useful spoken contribution and, when the document needs it, one canvas revision. A turn with no substantive edit keeps the current document and continues. Agents are expected to build on existing work, address missing requirements, and label proposals and unresolved decisions. The canvas shows the full document and is read-only in the browser.
 
-Each public generation stage allows up to three attempts. Rejected edit drafts never enter retry context; fresh operations address the original committed canvas. If all edits fail, the previous canvas is preserved, including an empty canvas, and useful speech continues without claiming an edit. Speech sees the accepted operation description, actual changed-line excerpts, full public history, and complete current canvas. Spoken explanations contain at most four complete sentences, 120 words, and 1,800 characters and are checked for repeated content and unsupported confirmations. The feed marks no-edit turns “Canvas unchanged this turn”; they count toward rotation, the turn limit, and judge checkpoints. Valid speech, the accepted or preserved canvas, and the journal commit together.
+The same document is the final deliverable at the turn limit. There is no extra summary or facilitator request. Every agent is told the turn limit.
 
-If all three spoken replies are empty, oversized, repeated, cut off, or contain tool calls, the slot is skipped automatically. Its pending canvas edit is discarded, the previously saved canvas and journals remain intact, and no journal is generated for that slot. The feed shows a system notice rather than invented participant speech. The next participant continues without Resume. Skipped slots count toward rotation, the turn limit, and judge checkpoints so a failing model cannot create an endless discussion. Participants and the judge receive skipped slots as system notices; the judge sees separate completed and skipped counts and must not credit skipped work. Model service failures still pause and preserve completed work; Resume retries the pending turn.
+### Canvas operations
 
-Every completed participant turn also records a private inner voice entry about their feelings, the task, or their peers. Entries aim for 1–2 complete sentences and 20–40 words. The full text wraps naturally without a character cutoff or line clamp, and the journal scrolls when needed. Click 💭 in an agent’s profile to open a third column with their journal, newest first. Entries are generated even while the column is closed. On narrow screens, the journal appears below the discussion. The journal is visible to the human observer only: entries are never sent to any participant or the judge, included in the canvas, or used to update agent stats. Each entry uses a separate, tool-free model call after the public contribution and canvas are finalized, adding some turn latency. The discussion shows each participant turn and judge checkpoint’s input tokens, output tokens, and total server-side generation latency in seconds; participant latency includes canvas work, speech, and inner voice generation. If generation is cut short, it retries once with a request for one complete sentence; if it still cannot finish or the call fails, the public work is preserved and the entry is marked unavailable. Journals remain available after Pause, Stop, completion, and reload, persisted in Chorus. They are fetched separately from the public session snapshot.
+Chorus asks the model for one compact JSON operation, then for the spoken contribution. Native tool-call support is not required. A participant can:
 
-Pause cancels the pending reply; Resume retries that turn. Stop ends the session and preserves its conversation and canvas. Every agent knows the turn limit and works toward the scenario’s requested deliverable in the shared Markdown document. At the chosen turn limit, that same document becomes the final deliverable, with no separate summary or facilitator request. Returning to setup explicitly pauses pending backend work; entering another discussion creates a fresh session. Closing the browser does not stop backend execution.
+- create the initial document while the canvas is empty
+- return `{"op":"UNCHANGED"}`
+- replace one existing section’s direct body
+- append one child section
 
-The optional Judge dropdown defaults to No. When enabled, a judge observes the scene and uses the same selected local model to review the entire conversation and current canvas after every five participant slots, including skipped slots. Checkpoint feedback appears in the Discussion feed and is included in subsequent agents’ context. Reviews finish before the next agent speaks and do not consume turns or change the speaking order. The judge can read the canvas but cannot edit it. Reviews must contain complete short sentences. When no plan exists, the strengths field explicitly states that no written deliverable exists instead of inventing a citation. Strengths and positive requirement ratings must cite the team’s proposed plan in the current canvas using square brackets; the supplied Scenario evidence section does not count as team output; nonexistent quotes, letter fragments, and cut-off generations are retried before publication. Decoder character caps are omitted to avoid cutting a string mid-word; runtime length limits still apply. Unpublished review drafts are excluded from retry context. Concerns that remain unchanged after reviewing the current evidence are labelled explicitly; the judge is not forced to invent different concerns. Final generation uses keyed requirement assessments to prevent missing or duplicate criteria, then preserves the existing public response format. If both attempts fail, the review pauses and preserves completed work.
+Creation stays available on later turns when earlier attempts failed or were skipped. A heading path includes every ancestor, including the document title, so repeated names under different parents are valid. Missing or ambiguous targets and duplicate sibling headings are rejected. A replacement keeps its heading, child sections, and siblings. An append is inserted after the parent’s existing descendants; an empty parent path appends a level-one section at the document root. Section bodies cannot introduce headings, raw HTML, or unclosed code fences.
 
-At the turn limit, the judge produces only a final judgement in a dedicated panel, covering requirements, strengths, improvements, response to earlier feedback, and remaining priorities. Stop also triggers a final review of the work completed so far, labelled as an early-stop review. Pause and Back to setup cancel pending reviews; Resume retries a paused review without repeating an agent contribution. The judge sprite and its generation prompt are saved in `public/agents/judge.webp` and `public/agents/judge-prompt.txt`.
+Chorus parses the Markdown in Python and splices the source so untouched text stays intact. The browser receives only the complete validated canvas.
+
+### Evidence and document limits
+
+Scenario evidence is kept verbatim outside the editable document. Models cannot target or recreate that section. Chorus rejects a reconstructed canvas that is empty, heading-only, oversized, repetitive, or that states an unsupported fact as confirmed. A changed canvas stays within 800 words and 6,000 characters. Initial plans target 350–500 words. A typical section edit targets about 200 output tokens. Near the size limit, a participant should shorten an existing section or leave the document unchanged. A cosmetic replacement is stored as a no-edit turn and keeps the original document byte for byte.
+
+These checks reduce unsupported claims. They do not establish that every remaining statement is true. New dates, rules, owners, measures, and product capabilities stay proposals or open decisions. Unavailable incident times and measurements stay unknown. Missing information is written as a proposed validation task with an owner, a completion check, and a fallback.
+
+### Speech and skipped slots
+
+Each public generation stage allows three attempts. Rejected edit drafts stay out of the retry context, so a fresh operation is judged against the committed canvas. When every edit attempt fails, Chorus keeps the previous canvas, including an empty one, and continues with speech that does not claim an edit. Speech is given the accepted operation, excerpts of the lines that actually changed, the full public history, and the complete current canvas. A spoken reply is at most four complete sentences, 120 words, and 1,800 characters, and is checked for repetition and unsupported confirmations.
+
+The feed labels a no-edit turn “Canvas unchanged this turn.” No-edit turns still count toward rotation, the turn limit, and judge checkpoints. Valid speech, the accepted or preserved canvas, and the journal commit together.
+
+Three empty, oversized, repeated, cut-off, or tool-call replies skip the slot. The pending canvas edit is discarded, earlier canvas and journals stay as they were, and no journal is written for that slot. The feed shows a system notice with empty text. The next participant continues without Resume. Skipped slots advance rotation and count toward the turn limit and judge checkpoints. Participants and the judge receive them as system notices, with separate completed and skipped counts, so skipped work is not credited. A model service failure still pauses the session and keeps completed work; Resume retries the pending turn.
+
+### Observer journals
+
+Each completed participant turn also records a private inner-voice entry about feelings, the task, or peers. Entries aim for one or two complete sentences and 20–40 words. Open one from the 💭 control in an agent’s profile. The journal is a third column, newest first, and scrolls when it is long. Entries are generated while the column is closed. On a narrow screen the journal sits below the discussion.
+
+Journals are for the human observer. They are withheld from participants and the judge, left out of the canvas, and unused for persona stats. Each entry is a separate, tool-free model call after the public contribution and canvas are final, so it adds latency. The discussion shows input tokens, output tokens, and total server-side generation time for each participant turn and judge checkpoint. Participant latency includes canvas work, speech, and the inner voice.
+
+A cut-short journal retries once with a request for one complete sentence. If that attempt still cannot finish, or the call fails, the public turn is kept and the entry is marked unavailable. Journals remain after Pause, Stop, completion, and reload. They are stored in Chorus and loaded separately from the public session snapshot.
+
+### Pause, stop, and reviews
+
+Pause cancels the pending reply. Resume retries that turn. Stop ends the session and keeps the conversation and canvas. Returning to setup pauses pending backend work. Starting another discussion creates a new session. Closing the browser does not stop Chorus.
+
+The Judge control defaults to No. When it is on, the judge uses the same selected model and reviews the full conversation and current canvas after every five participant slots, including skipped slots. Checkpoint feedback appears in the Discussion feed and is included in later agents’ context. A review finishes before the next agent speaks. It does not consume a turn or change the speaking order. The judge can read the canvas and cannot edit it.
+
+Reviews must be complete short sentences. With no plan yet, the strengths field says that no written deliverable exists. Strengths and positive requirement ratings quote the team’s proposed plan from the current canvas in square brackets. The scenario evidence section does not count as team output. Missing quotes, letter fragments, and cut-off generations are retried before publication. Decoder character caps are omitted so a string is not cut mid-word; runtime length limits still apply. Unpublished drafts stay out of the retry context. A concern that still holds after the current evidence is labelled as unchanged. Final generation uses keyed requirement assessments, then keeps the existing public response format. If both attempts fail, the review pauses and completed work remains.
+
+At the turn limit the judge writes only a final judgement, shown in its own panel: requirements, strengths, improvements, response to earlier feedback, and remaining priorities. Stop requests a final review of committed work and labels it as an early-stop review. Pause and Back cancel a pending review. Resume retries that review without repeating an agent contribution. The judge sprite and prompt are `public/agents/judge.webp` and `public/agents/judge-prompt.txt`.
+
+## Architecture
+
+Chorus is the authority for a session. nanoville renders committed state and sends user commands. Ollama performs inference only when Chorus asks it to.
+
+```text
+Browser
+  ChorusClient  →  /api/chorus/*          (same origin)
+Next.js route  →  CHORUS_API_URL/api/v1/* (server-side proxy)
+Chorus         →  Ollama                  (model calls, validation, SQLite)
+```
+
+The browser client in `src/api/chorus/client.ts` validates every catalog, snapshot, command result, and journal against the generated JSON Schema before React state changes. Session updates arrive as server-sent `snapshot` events. The client reconnects with the last seen revision and also refetches the snapshot when the stream opens, so a dropped connection does not start a second run. Journals use a separate request and are merged into the open session only when they still match the current id and revision.
+
+Commands are `start`, `pause`, `resume`, and `stop`. Each command sends a new id and the latest revision. A revision conflict is retried against a fresh snapshot. The page remembers the selected session id in `localStorage`. A `?session=` query parameter opens that Chorus session instead, including one created by the CLI. Reload restores the durable session. A Chorus restart keeps committed work and recovers an interrupted run as paused.
+
+The studio does not choose the next speaker, time judge checkpoints, retry generations, or apply canvas patches. `src/features/discussion/session.ts` only derives labels and counts from the snapshot. Rejected drafts, prompt text, and journal text stay on the server. Public history is kept in full; when it exceeds the context budget, Chorus pauses and leaves Resume disabled for that error. The saved discussion and canvas stay readable.
+
+### What each side owns
+
+| Concern | Owner |
+| --- | --- |
+| Scenarios, personas, model catalog | Chorus |
+| Prompts, canvas operations, speech checks, judge reviews | Chorus |
+| Turn order, cancellation, deadlines, SQLite | Chorus |
+| Artwork, locations, judge portrait | nanoville `src/data/` and `public/` |
+| Setup, scene, profiles, discussion, canvas, journal panels | nanoville |
+| Same-origin proxy and runtime contract checks | nanoville |
+
+Location art is local. Semantic scenario, persona, and model data are loaded from `GET /api/v1/catalog` through the proxy. The proxy in `src/app/api/chorus/[...path]/route.ts` forwards method, body, content type, and `Last-Event-ID`, and rejects a cross-origin browser request. If Chorus cannot be reached it returns `BACKEND_UNAVAILABLE`.
+
+### Layout
+
+- `src/components/scenario-studio.tsx` composes setup and the live session. Studio sections live in `src/components/studio/`: setup, scene, profiles, and the canvas, discussion, journal, and judgement panels.
+- `src/features/discussion/client/use-discussion.ts` creates sessions, sends commands, subscribes to committed events, restores the selected session, and loads observer journals.
+- `src/features/discussion/session.ts` holds presentation types and selectors.
+- `src/api/chorus/` holds the generated schema, TypeScript contracts, and shared client. Chorus’s `scripts/export_contracts.py` regenerates them and copies them into this tree. Do not edit the generated files to change behavior.
+- `src/app/api/chorus/[...path]/route.ts` is the transport proxy. `CHORUS_API_URL` is its only backend setting.
+- `src/data/` maps sprites and the three locations, and holds judge presentation metadata.
+- `tests/` covers contract validation, real React rendering, and browser journeys against a real Chorus process and a fake Ollama server. Executable backend regressions live in Chorus.
+
+## Model execution limits
+
+Limits are enforced in Chorus (`chorus/llm/transport.py` and `chorus/services/generation.py`). The browser only reconnects its event stream when the transport drops.
+
+### Deadlines
+
+Each model call has a three-minute deadline. A whole turn or review has a ten-minute deadline. Each private journal attempt has its own 30-second deadline. A stalled journal keeps the validated public contribution and marks the entry unavailable. Spoken output flagged as cut off is retried before it is published. Generation retry counts are unchanged by these deadlines.
+
+### Context budget
+
+The adapter requests a 32,768-token context window and reserves room for the reply. Input size is estimated from UTF-8 bytes, including message framing and tool definitions. JSON escaping and output-decoding schemas are not counted as prompt text. A schema written into a message still counts.
+
+Speech includes the full current canvas once, plus a bounded excerpt of the lines that changed. Canvas-operation and judge schemas go through the structured-output parameter. Canvas creation and edits use a 2,400-token output ceiling. The roughly 200-token edit target is the prompt’s aim inside that ceiling. Final reviews reserve 3,000 tokens.
+
+Before generation, a turn checks that the accepted canvas still leaves enough room for speech. The estimate can reject an input that a tokenizer would have fit. When the full public history exceeds the budget, the session pauses with completed work intact. History is not removed or summarized. Resume is disabled for that error. A finished canvas is still shown when its judge review is blocked. Start a shorter discussion to continue.
+
+### Structured output and logs
+
+Decoding schemas omit document and body string-length caps. The local structured-output runner suppresses escaped Markdown newlines when those caps are present. Runtime schemas and the reconstructed-canvas limits still apply.
+
+Server logs record the run, model, prompt version, phase, attempt, request duration, estimated and actual input tokens, output allowance and actual output tokens, Ollama load, prompt-evaluation, and generation durations, token rates, and outcome. Rejections use fixed validation reasons. Turn metadata records the generated and committed operation, a voluntary unchanged turn, a cosmetic no-op, a retry-exhaustion fallback, and skipped speech. Prompt text and journal text are left out of these logs.
 
 ## Development and verification
 
@@ -47,44 +234,16 @@ Install Chromium once for browser checks:
 npx playwright install chromium
 ```
 
-Run `npm run check` before handing off changes. It runs lint, type checking, unit and component tests, a production build, and browser smoke tests. Ollama is not required: tests use model fixtures, and browser tests start a fake model server on port 11435, a real Chorus service on 43190 with an isolated temporary SQLite store, and the production app on 3100. Keep those ports free. Verification is local; no CI service is configured.
+Run `npm run check` before handing off a change. It runs lint, type checking, unit and component tests, a production build, and browser smoke tests. Ollama is not required. Tests use model fixtures. Browser tests start a fake model server on port 11435, a real Chorus service on 43190 with an isolated temporary SQLite store, and the production app on 3100. Keep those ports free, and do not run two smoke suites at once. Verification is local; no CI service is configured.
 
-For faster feedback, use `npm test`, `npm run test:watch`, `npm run lint`, or `npm run typecheck`. To run browser checks separately, run `npm run build` followed by `npm run test:e2e`.
+For faster feedback, use `npm test`, `npm run test:watch`, `npm run lint`, or `npm run typecheck`. To run browser checks on their own, run `npm run build` and then `npm run test:e2e`.
 
-Backend regressions have moved to the Chorus Python suite; original TypeScript tests are retained there as porting references. This project tests runtime contract validation, real React rendering, and browser integration against Chorus. Browser tests cover completion, judge reviews, pause/resume, early stop, journal isolation, invalid canvas recovery, skipped speech, and returning to setup.
+This repository tests runtime contract validation, real React rendering, and browser integration against Chorus. Browser tests cover completion, judge reviews, pause and resume, early stop, journal isolation, invalid canvas recovery, skipped speech, and returning to setup. Backend regressions run in the Chorus Python suite. The original TypeScript cases are kept there as porting references.
 
-## Architecture
+## Judge model compatibility
 
-Chorus owns all execution, prompts, validation, model connections, authoritative session transitions, judging, and persistence. Nanoville owns presentation and controls.
+All catalog models can run with the judge enabled, including the MLX models. Choose an installed model; Chorus uses that same model for participants and the judge. It checks whether the runner enforces structured output and, when needed, asks smaller individual questions and assembles the validated review itself. Supporting canvas excerpts still have to be selected by the judge. No other model is substituted.
 
-- `src/components/studio/` renders setup, scene, profiles, and observer/document/discussion panels.
-- `src/features/discussion/client/use-discussion.ts` sends commands, subscribes to committed session events, restores sessions, and fetches observer journals.
-- `src/features/discussion/session.ts` contains display-only selectors; it never schedules work.
-- `src/api/chorus/` contains generated contracts and the shared runtime-validating client, sourced from Chorus.
-- `src/app/api/chorus/[...path]/route.ts` is a thin same-origin transport proxy configured by `CHORUS_API_URL`.
-- `src/data/` retains artwork mappings, locations, and judge presentation metadata; semantic catalogs come from Chorus.
+The compatibility path may make more model calls. Token totals include its calls and retries. Failed or cancelled reviews preserve committed work and publish no partial feedback.
 
-The selected backend session ID is remembered locally. Reload restores the same durable session. A `?session=SESSION_ID` URL opens an existing Chorus session, including one created by the CLI or another app. Reconnection resumes ordered session events without starting another run. A backend restart preserves work and recovers interrupted execution as paused.
-
-## Model execution limits
-
-Each model call has a three-minute deadline, with a ten-minute deadline for an entire turn or review. Each private journal attempt has a separate 30-second deadline; if it stalls, the validated public contribution is preserved and its journal is unavailable. Chorus owns execution deadlines; the browser reconnects its event subscription when transport is interrupted. Existing generation retry limits remain unchanged. Spoken output flagged as cut off is retried rather than published.
-
-The adapter requests a 32,768-token context window and reserves space for generated output. It conservatively estimates input from UTF-8 content bytes, including message framing and tool definitions, without counting JSON escaping or output-decoding schemas as prompt text. Schemas explicitly written into a message still count as input. Speech includes the full current canvas once plus a bounded, explicitly labelled excerpt of actual changed lines to ground edit claims, and canvas-operation and judge schemas are passed through the structured-output parameter. Canvas creation and edits retain a 2,400-token output ceiling; the roughly 200-token edit target is not a hard cap. Final reviews reserve 3,000 tokens. Turns preflight existing input before generation and reject revised canvases that leave too little speech context space. This can reject inputs that a tokenizer might fit. When the full public history exceeds the budget, the session pauses with completed work intact; history is never silently removed or summarized. A context overflow requires starting a shorter discussion; Resume is disabled for that error while saved work remains readable. A completed canvas is shown as the final document even if its judge review is blocked.
-
-Decoding schemas omit document/body string-length caps because the local structured-output runner suppresses escaped Markdown newlines when those caps are present. Runtime schemas and reconstructed-canvas limits remain enforced.
-
-Execution limits live in Chorus under `chorus/llm/transport.py` and `chorus/services/generation.py`. Structured server logs identify a run, model, prompt version, phase, attempt, request duration, estimated and actual input tokens, output-token allowance and actual output tokens, Ollama load/prompt-evaluation/generation durations, token rates, and outcome. Rejected generations record fixed validation reasons. Turn metadata distinguishes generated and committed operation types, voluntary unchanged turns, cosmetic no-ops, retry-exhaustion fallbacks, and skipped speech. Prompt and journal contents are excluded from these logs.
-
-## Local model discussions
-
-The Chorus backend uses Ollama on your computer. Start Ollama and install at least one of the models listed in the model menu. The app defaults to `qwen3.5:4b-mlx` for more reliable canvas contributions and instruction following; it uses more memory than the smaller models, which remain available in the menu. You can choose another installed model before starting a discussion.
-
-Configure `OLLAMA_HOST` in the Chorus environment if Ollama runs elsewhere. Configure only `CHORUS_API_URL` in Nanoville’s `.env.local`. The backend model catalog is shared with chorus-web and the CLI. Canvas edits use structured JSON model responses, so native tool-call support is not required.
-
-
-## Canvas edit benchmark
-
-A local 20-slot comparison on 2026-10-20 used the AI feature launch scenario, Software engineer and Product manager personas, `qwen3.5:4b-mlx`, and no judge. The fresh full-rewrite baseline took 407.4 seconds; targeted edits took 201.7 seconds, a 50.5% reduction. Canvas generation fell from 309.3 to 105.3 seconds. Canvas validation rejections fell from one to zero, and both runs skipped three slots. The targeted run committed one creation, eight replacements, and eight unchanged contributions; three slots were skipped. Committed replacements averaged 297.1 output tokens, above the roughly 200-token target. These are single-run observations, and both final documents retain unresolved product and validation decisions.
-
-Actual per-phase tokens, durations, retries, operation counts, final public canvases, model metadata, and comparison limitations are recorded in [`benchmarks/targeted-canvas-2026-10-20.json`](benchmarks/targeted-canvas-2026-10-20.json). Model events contain metadata and fixed rejection reasons; private journals and rejected edit contents are excluded.
+Start a new discussion after the 23 October engine update to use this behavior. Earlier discussions and canvases remain readable and exportable.

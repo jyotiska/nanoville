@@ -1,6 +1,6 @@
-# Nanoville test plan
+# nanoville test plan
 
-Nanoville becomes a Chorus frontend. Backend behavior is verified in Chorus; retain real component and browser regression coverage here.
+nanoville becomes a Chorus frontend. Backend behavior is verified in Chorus; retain real component and browser regression coverage here.
 
 - Setup retains scenario, persona, location, model, length and judge selections.
 - Catalog and model choices come from Chorus; artwork remains local.
