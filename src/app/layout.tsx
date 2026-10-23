@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nanoville — Scenario Studio",
+  title: "nanoville — Scenario Studio",
   description: "Pick a work problem, bring a team together, and agree on a next step.",
 };
 

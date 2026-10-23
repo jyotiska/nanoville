@@ -63,7 +63,7 @@ function StudioContent() {
       <main className={styles.app}>
         <div className={styles.sessionShell}>
           <header className={styles.sessionHeader}>
-            <a className={styles.brand} href="#top"><Image className={styles.brandLogo} src="/nanoville-logo-horizontal.png" alt="Nanoville" width={2172} height={724} /></a>
+            <a className={styles.brand} href="#top"><Image className={styles.brandLogo} src="/nanoville-logo-horizontal.png" alt="nanoville" width={2172} height={724} /></a>
             <Button type="button" variant="ghost" className={styles.textButton} onClick={returnToSetup}>← Back to setup</Button>
           </header>
           <div className={styles.sessionTitle}>

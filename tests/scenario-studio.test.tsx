@@ -65,3 +65,13 @@ test("reload restores the saved backend session without creating another run", a
   expect(ChorusClient.prototype.get).toHaveBeenCalledWith(initial.id);
   expect(ChorusClient.prototype.create).not.toHaveBeenCalled();
 });
+
+test("judge setup allows every catalog model, including MLX", async () => {
+  setup();
+  const enter = await screen.findByRole("button", { name: /Enter discussion/ });
+  fireEvent.change(screen.getByLabelText("Judge", { exact: true }), { target: { value: "yes" } });
+  for (const model of catalog.models) {
+    fireEvent.change(screen.getByLabelText("Ollama model"), { target: { value: model.id } });
+    expect((enter as HTMLButtonElement).disabled).toBe(false);
+  }
+});

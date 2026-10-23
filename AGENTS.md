@@ -1,6 +1,6 @@
 ## Project
 
-Nanoville is one local-first Next.js 16.4 application using the App Router, React 19, strict TypeScript, and a local Ollama model. Sessions belong to Chorus and persist in SQLite. The browser remembers a session ID and renders committed backend state.
+nanoville is one local-first Next.js 16.4 application using the App Router, React 19, strict TypeScript, and a local Ollama model. Sessions belong to Chorus and persist in SQLite. The browser remembers a session ID and renders committed backend state.
 
 ## Development
 
@@ -19,7 +19,7 @@ Use targeted tests during development and `npm run check` before handing off a c
 
 ## Architecture and ownership
 
-Chorus is the Python execution backend on port 43187. Nanoville runs on 43188 and owns rendering and user controls. All model execution, validation, prompts, scheduling, cancellation, and persistence belong to Chorus. Sessions survive reloads and backend restarts; interrupted sessions recover as paused.
+Chorus is the Python execution backend on port 43187. nanoville runs on 43188 and owns rendering and user controls. All model execution, validation, prompts, scheduling, cancellation, and persistence belong to Chorus. Sessions survive reloads and backend restarts; interrupted sessions recover as paused.
 
 - `src/components/studio/`: setup, scene, profiles, and panels.
 - `src/features/discussion/client/use-discussion.ts`: backend commands, committed events, session restoration, and separate observer journals.
@@ -57,3 +57,13 @@ Prompt changes belong in Chorus and require its regression tests and prompt-vers
 Use strict types, `@/` imports, double quotes, semicolons, and CSS Modules for feature styles. Preserve nearby conventions in existing UI primitives. Keep model addresses in the Chorus environment. Use `CHORUS_API_URL` in `.env.local`, with a safe `.env.example`.
 
 Update `README.md` when behavior or setup changes and update this map when ownership or verification commands change.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

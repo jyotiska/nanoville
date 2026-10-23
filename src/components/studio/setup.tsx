@@ -27,7 +27,7 @@ export function ScenarioSetup({ config, onChange, onStart, busy = false }: { bus
     <main className={styles.app} id="top">
       <div className={styles.setupShell}>
         <header className={styles.topbar}>
-          <a className={styles.brand} href="#top"><Image className={styles.brandLogo} src="/nanoville-logo-horizontal.png" alt="Nanoville" width={2172} height={724} /></a>
+          <a className={styles.brand} href="#top"><Image className={styles.brandLogo} src="/nanoville-logo-horizontal.png" alt="nanoville" width={2172} height={724} /></a>
         </header>
         <section className={styles.hero}>
           <div><h1>Work through a problem <em>together.</em></h1><p className={styles.heroText}>Pick a challenge, talk it through as a team, and leave with a clear next step.</p></div>
@@ -103,7 +103,7 @@ export function ScenarioSetup({ config, onChange, onStart, busy = false }: { bus
         </section>
 
         <div className={styles.startBar}><span>{participants.length < 2 ? "Choose at least two people to start." : `${scenario.title} · ${participants.length} people · ${location.name} · ${maxTurns} turns`}</span><Button type="button" variant="ghost" className={styles.primaryButton} onClick={onStart} disabled={participants.length < 2 || busy}>Enter discussion <span>→</span></Button></div>
-        <footer className={styles.footer}><a className={styles.brand} href="#top"><Image className={styles.brandLogo} src="/nanoville-logo-horizontal.png" alt="Nanoville" width={2172} height={724} /></a></footer>
+        <footer className={styles.footer}><a className={styles.brand} href="#top"><Image className={styles.brandLogo} src="/nanoville-logo-horizontal.png" alt="nanoville" width={2172} height={724} /></a></footer>
       </div>
     </main>
   );
