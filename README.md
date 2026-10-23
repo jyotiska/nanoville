@@ -31,7 +31,7 @@ nanoville does not call Ollama itself. Start Ollama, then Chorus, then this app.
 
 ### 1. Start Ollama and install a model
 
-Start the Ollama app or service so it listens on `http://localhost:11434`. Install a model from the Chorus catalog. The studio defaults to `qwen3:4b`, which supports the structured responses needed for judge reviews.
+Start the Ollama app or service so it listens on `http://localhost:11434`. Install a model from the Chorus catalog. The studio defaults to `qwen3:4b`. Every catalog model can supply judge reviews.
 
 ```bash
 ollama pull qwen3:4b
