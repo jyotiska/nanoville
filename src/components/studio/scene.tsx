@@ -4,6 +4,7 @@ import { judge } from "@/data/judge";
 import { locations, type LocationId } from "@/data/scenarios";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { sessionView, type Session } from "@/features/discussion/session";
+import { StatPopups, useStatPopups } from "./stat-popups";
 import styles from "../scenario-studio.module.css";
 
 const seats: Record<LocationId, { left: number; top: number }[]> = {
@@ -30,6 +31,7 @@ const judgeSeats: Record<LocationId, { left: number; top: number }> = {
 
 export function SessionScene({ session, busy, locationId, sessionLabel, onInspect }: { session: Session; busy: boolean; locationId: LocationId; sessionLabel: string; onInspect: (agent: Agent) => void }) {
   const { participants, completedTurns, activeAgent, reviewing } = sessionView(session);
+  const { popups, dismiss } = useStatPopups(session);
   const { status, turns } = session;
   const { maxTurns, judgeEnabled } = session.config!;
   const location = locations.find((item) => item.id === locationId)!;
@@ -43,11 +45,13 @@ export function SessionScene({ session, busy, locationId, sessionLabel, onInspec
         const isThinking = busy && activeAgent?.id === agent.id;
         const isSpeaking = status === "running" && !reviewing && !busy && completedTurns < maxTurns && lastTurn?.kind === "agent" && lastTurn.speakerId === agent.id;
         const isActive = isThinking || isSpeaking;
+        const agentPopups = popups.filter((popup) => popup.agentId === agent.id);
         return (
           <DialogTrigger className={`${styles.agentSeat} ${isActive ? styles.agentActive : ""}`} key={agent.id} style={{ left: `${seat.left}%`, top: `${seat.top}%` }} aria-label={`About ${agent.name}${isActive ? ` · ${isThinking ? "Thinking" : "Speaking"}` : ""}`} onClick={() => onInspect(agent)}>
             <Image className={styles.agentImage} src={`/agents/${agent.sprite}.webp`} alt="" width={256} height={256} unoptimized />
             <span className={styles.agentName}>{agent.name.split(" ")[0]}</span>
-            {isActive && <span className={`${styles.agentActivity} ${isSpeaking ? styles.agentSpeaking : ""}`} role="status">
+            <StatPopups popups={agentPopups} dismiss={dismiss} />
+            {isActive && <span className={`${styles.agentActivity} ${isSpeaking ? styles.agentSpeaking : ""} ${agentPopups.length ? styles.activityBelowStats : ""}`} role="status">
               {isThinking ? "Thinking" : "Speaking"}
               <span className={styles.activityDots} aria-hidden="true"><span /><span /><span /></span>
             </span>}

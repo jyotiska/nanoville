@@ -8,6 +8,7 @@ nanoville becomes a Chorus frontend. Backend behavior is verified in Chorus; ret
 - Display committed discussion, skipped notices, unchanged canvas, token/latency metadata, judge checkpoints and final judgement.
 - Pause/Resume/Stop and Back call backend commands; no browser speaker rotation, generation retry, judge timing or canvas mutation remains.
 - Journals appear only in observer panels and never leak into public requests/events.
+- Committed energy/confidence updates animate above affected sprites, dismiss after 2.8 seconds, and update an already-open profile. Meters and change reasons survive reload without replaying effects. Reject out-of-range state and unknown personality settings at the client boundary. Backend tests cover personality rules, directed feedback, cancellation and atomic persistence.
 - Reload/reconnect restores the selected durable session without creating another run; stale responses cannot overwrite a newer session.
 - Backend unavailability, malformed responses, context overflow and revision conflicts produce readable recovery states.
 - Same-origin API proxy forwards cancellation, SSE and errors without model logic.

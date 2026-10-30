@@ -92,7 +92,7 @@ function StudioContent() {
             {innerVoiceAgent && <JournalPanel session={session} agent={innerVoiceAgent} onClose={() => setInnerVoiceAgent(null)} />}
           </div>
         </div>
-        {inspectedAgent && <AgentProfile agent={inspectedAgent} onJournal={(agent) => { setInnerVoiceAgent(agent); setInspectedAgent(null); }} />}
+        {inspectedAgent && <AgentProfile agent={participants.find((agent) => agent.id === inspectedAgent.id) ?? inspectedAgent} session={session} onJournal={(agent) => { setInnerVoiceAgent(agent); setInspectedAgent(null); }} />}
       </main>
     </Dialog>
   );

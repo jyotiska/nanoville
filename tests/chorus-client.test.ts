@@ -14,3 +14,11 @@ test("controls send IDs and revision, never a browser transcript or journal", as
   expect(body).toEqual({ commandId: expect.any(String), expectedRevision: fixture.revision, action: "pause" });
   vi.unstubAllGlobals();
 });
+
+test("rejects invalid stats and unknown personality settings at the API boundary", async () => {
+  for (const changes of [{ energy: -1 }, { confidence: 101 }, { personality: { socialStyle: "invented", challengeResponse: "balanced" } }]) {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ ...fixture, agents: [{ ...fixture.agents[0], ...changes }, fixture.agents[1]] })));
+    await expect(new ChorusClient().get(fixture.id)).rejects.toThrow(/invalid Snapshot/);
+  }
+  vi.unstubAllGlobals();
+});

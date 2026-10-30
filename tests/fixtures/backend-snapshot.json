@@ -1,7 +1,7 @@
 {
   "id": "f8182d1d-731c-40ce-9973-48d2be550198",
   "revision": 0,
-  "engineVersion": "discussion-v23-python1",
+  "engineVersion": "discussion-v24-python2",
   "config": {
     "scenarioId": "ai-feature-launch",
     "participantIds": [
@@ -48,6 +48,10 @@
       "mood": "focused",
       "energy": 78,
       "confidence": 82,
+      "personality": {
+        "socialStyle": "introverted",
+        "challengeResponse": "balanced"
+      },
       "collection": "nanoville"
     },
     {
@@ -63,6 +67,10 @@
       "mood": "curious",
       "energy": 74,
       "confidence": 79,
+      "personality": {
+        "socialStyle": "extroverted",
+        "challengeResponse": "balanced"
+      },
       "collection": "nanoville"
     }
   ],
