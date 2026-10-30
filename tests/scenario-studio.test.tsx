@@ -32,7 +32,8 @@ test("loads the backend catalog and creates configuration without sending transc
   setup(); await start();
   expect(ChorusClient.prototype.create).toHaveBeenCalledWith(expect.objectContaining({ scenarioId: "ai-feature-launch", maxTurns: 5, judgeEnabled: false }));
   const body = vi.mocked(ChorusClient.prototype.create).mock.calls[0][0];
-  expect(Object.keys(body).sort()).toEqual(["judgeEnabled", "maxTurns", "model", "participantIds", "scenarioId"]);
+  expect(Object.keys(body).sort()).toEqual(["adversaryIds", "judgeEnabled", "maxTurns", "model", "participantIds", "scenarioId"]);
+  expect(body.adversaryIds).toEqual([]);
   expect(ChorusClient.prototype.command).toHaveBeenCalledWith(initial.id, "start");
 });
 
@@ -113,4 +114,52 @@ test("restoring a session preserves meters without replaying past popups", async
   expect(screen.queryByText("-9 energy")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Riley Chen" }));
   expect((screen.getByRole("meter", { name: "Energy" }) as HTMLMeterElement).value).toBe(69);
+});
+
+test("selects multiple adversaries, removes deselected assignments, and sends only configuration", async () => {
+  setup();
+  const riley = await screen.findByRole("checkbox", { name: "Adversary: Riley Chen" });
+  const jordan = screen.getByRole("checkbox", { name: "Adversary: Jordan Brooks" });
+  fireEvent.click(riley);
+  fireEvent.click(jordan);
+  expect((riley as HTMLInputElement).checked).toBe(true);
+  expect((jordan as HTMLInputElement).checked).toBe(true);
+  fireEvent.click(screen.getByRole("button", { name: /Riley Chen/ }));
+  expect((riley as HTMLInputElement).checked).toBe(false);
+  expect((riley as HTMLInputElement).disabled).toBe(true);
+  fireEvent.click(screen.getByRole("button", { name: /Riley Chen/ }));
+  expect((riley as HTMLInputElement).checked).toBe(false);
+  fireEvent.click(riley);
+  fireEvent.click(screen.getByRole("button", { name: /Enter discussion/ }));
+  await screen.findByRole("button", { name: "Ⅱ Pause" });
+  expect(ChorusClient.prototype.create).toHaveBeenCalledWith(expect.objectContaining({ adversaryIds: ["product-manager", "software-engineer"] }));
+  expect(JSON.stringify(vi.mocked(ChorusClient.prototype.create).mock.calls[0])).not.toContain("PRIVATE ADVERSARY");
+});
+
+test("changing scenarios prunes adversaries outside the new team", async () => {
+  setup();
+  await screen.findByRole("checkbox", { name: "Adversary: Riley Chen" });
+  const original = catalog.scenarios[0];
+  const next = catalog.scenarios.filter((s) => s.collection === "nanoville").find((s) => original.suggestedAgents.some((id) => !s.suggestedAgents.includes(id)))!;
+  for (const id of original.suggestedAgents) {
+    const agent = catalog.agents.find((a) => a.id === id)!;
+    fireEvent.click(screen.getByRole("checkbox", { name: `Adversary: ${agent.name}` }));
+  }
+  fireEvent.click(screen.getByRole("button", { name: new RegExp(next.title) }));
+  fireEvent.click(screen.getByRole("button", { name: /Enter discussion/ }));
+  await screen.findByRole("button", { name: "Ⅱ Pause" });
+  expect(ChorusClient.prototype.create).toHaveBeenCalledWith(expect.objectContaining({ adversaryIds: original.suggestedAgents.filter((id) => next.suggestedAgents.includes(id)) }));
+});
+
+test("restored assignments appear only in observer controls and profiles and cannot be edited", async () => {
+  const saved: Snapshot = { ...initial, status: "paused", config: { ...initial.config, adversaryIds: [initial.agents[0].id] } };
+  localStorage.setItem("nanoville.chorus-session", saved.id);
+  vi.mocked(ChorusClient.prototype.get).mockResolvedValue(saved);
+  setup();
+  await screen.findByRole("button", { name: "▶ Resume" });
+  expect(screen.getByText(/Observer only · Adversaries: Riley Chen/)).toBeTruthy();
+  expect(screen.queryByRole("checkbox", { name: /Adversary:/ })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Riley Chen" }));
+  expect(screen.getByText(/Adversary · Observer only/)).toBeTruthy();
+  expect(ChorusClient.prototype.create).not.toHaveBeenCalled();
 });

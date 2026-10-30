@@ -56,7 +56,7 @@ export function useDiscussion() {
       const version = ++generation.current;
       setCommandPending(true);
       try {
-        const created = await client.create({ scenarioId: config.scenarioId, participantIds: config.participantIds, model: config.model, maxTurns: config.maxTurns, judgeEnabled: config.judgeEnabled });
+        const created = await client.create({ scenarioId: config.scenarioId, participantIds: config.participantIds, adversaryIds: config.adversaryIds, model: config.model, maxTurns: config.maxTurns, judgeEnabled: config.judgeEnabled });
         if (generation.current !== version) return;
         selected.current = created.id;
         latest.current = -1;

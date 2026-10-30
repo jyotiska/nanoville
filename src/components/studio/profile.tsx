@@ -18,6 +18,7 @@ export function AgentProfile({ agent: inspectedAgent, session, onJournal }: { ag
         <div><DialogTitle className={styles.agentPopupTitle}>{inspectedAgent.name}</DialogTitle><p>{inspectedAgent.role}</p></div>
       </div>
       <DialogDescription>{inspectedAgent.description}</DialogDescription>
+      {session.config?.adversaryIds.includes(inspectedAgent.id) && <p className={styles.adversaryNote}>Adversary · Observer only. This participant is privately instructed to undermine the team and act against their usual personality. Their displayed traits and stat rules remain the baseline.</p>}
       <div className={styles.agentTraits}>{inspectedAgent.traits.map((trait) => <span key={trait}>{trait}</span>)}</div>
       {inspectedAgent.id !== judge.id && <p className={styles.personalityNote}>
         {inspectedAgent.personality.socialStyle} · {inspectedAgent.personality.challengeResponse === "sensitive" ? "Non-confrontational" : inspectedAgent.personality.challengeResponse === "resilient" ? "Resilient under challenge" : "Balanced under challenge"}

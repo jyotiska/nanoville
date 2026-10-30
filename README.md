@@ -87,7 +87,7 @@ Open [http://localhost:43188](http://localhost:43188). The first screen stays on
 On the setup screen:
 
 1. Choose a challenge. The page fills in that scenario’s suggested team.
-2. Keep 2–5 participants.
+2. Keep 2–5 participants. Optionally mark any selected participants as **Adversary**.
 3. Choose a location. Locations are presentation only and do not change the scenario.
 4. Choose an installed local model.
 5. Choose a length of 5, 10, 20, 50, 75, or 100 turns. The default is 20.
@@ -112,6 +112,16 @@ npm start
 ### Setup and scene
 
 Entering the scene starts the discussion. Each turn is one participant’s scheduled slot, including a slot skipped after repeated invalid replies. The conversation sits on the right, newest reply first, fills the scene column, and scrolls inside the panel. Click an agent or their name badge to open a profile. Dismiss it with the close button, Escape, or a click outside.
+
+### Private adversaries
+
+Before starting, use the **Adversary** checkbox on any selected participant. Zero, one, multiple, or all participants may be assigned. Deselecting a participant removes their assignment; changing challenges retains only assignments still in the new team.
+
+An adversary receives a private system instruction for document edits, speech, and observer journals, including retries. They act against their usual constructive tendencies to obstruct progress, reopen decisions, promote weak proposals, or weaken the proposed plan. Their name, professional role, baseline personality, and energy/confidence rules remain unchanged. Evidence protection, valid edit operations, and output limits still apply.
+
+The session header and profiles show assignments to the human observer. Assignments are fixed when the session is created and survive reload, pause/resume, and backend restart. Other participants and every judge path receive no assignment metadata; adversaries know only their own role. Public behavior or a model disclosing its instruction can still reveal the role. Assignment does not guarantee successful sabotage.
+
+Chorus owns this behavior. Start a new discussion after updating to `discussion-v25-adversaries`; earlier sessions remain readable and exportable with no adversaries by default.
 
 ### Agent energy and confidence
 

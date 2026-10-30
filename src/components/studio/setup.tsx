@@ -11,17 +11,17 @@ import styles from "../scenario-studio.module.css";
 export type StudioConfig = SessionConfig & { locationId: LocationId };
 export function ScenarioSetup({ config, onChange, onStart, busy = false }: { busy?: boolean; config: StudioConfig; onChange: (config: StudioConfig) => void; onStart: () => void }) {
   const { agents, scenarios, models: ollamaModels } = useCatalog();
-  const { scenarioId, participantIds: selectedAgentIds, locationId, model, maxTurns, judgeEnabled } = config;
+  const { scenarioId, participantIds: selectedAgentIds, adversaryIds, locationId, model, maxTurns, judgeEnabled } = config;
   const scenario = scenarios.find((item) => item.id === scenarioId)!;
   const location = locations.find((item) => item.id === locationId)!;
   const participants = agents.filter((agent) => selectedAgentIds.includes(agent.id));
   function chooseScenario(next: Scenario) {
-    onChange({ ...config, scenarioId: next.id, participantIds: next.suggestedAgents });
+    onChange({ ...config, scenarioId: next.id, participantIds: next.suggestedAgents, adversaryIds: adversaryIds.filter((id) => next.suggestedAgents.includes(id)) });
   }
   function toggleAgent(id: string) {
     const ids = selectedAgentIds.includes(id) ? selectedAgentIds.filter((item) => item !== id)
       : selectedAgentIds.length < 5 ? [...selectedAgentIds, id] : selectedAgentIds;
-    onChange({ ...config, participantIds: ids });
+    onChange({ ...config, participantIds: ids, adversaryIds: adversaryIds.filter((id) => ids.includes(id)) });
   }
   return (
     <main className={styles.app} id="top">
@@ -46,11 +46,16 @@ export function ScenarioSetup({ config, onChange, onStart, busy = false }: { bus
 
         <section className={styles.setupSection}>
           <div className={styles.sectionTitle}><span>02</span><div><h2>Choose your team</h2><p>Pick 2–5 people. We’ve picked a starting team for you.</p></div><span className={styles.selectedCount}>{participants.length} of 5 picked</span></div>
+          <p className={styles.adversaryHelp} id="adversary-help">Optional: mark selected participants as adversaries. They act against their usual personality and work to undermine the team. Assignments are hidden from participants and the judge; behavior may reveal them.</p>
           <div className={styles.agentGrid}>
             {agents.map((agent) => <Card className={`${styles.choiceCardFrame} ${styles.agentCardFrame}`} key={agent.id}>
               <Button type="button" variant="ghost" className={`${styles.agentOption} ${selectedAgentIds.includes(agent.id) ? styles.agentOptionSelected : ""}`} onClick={() => toggleAgent(agent.id)} aria-pressed={selectedAgentIds.includes(agent.id)}>
                 <Image src={`/agents/${agent.sprite}.webp`} alt="" width={54} height={54} unoptimized /><span><strong>{agent.name}</strong><small>{agent.role}</small></span><span className={styles.checkMark}>{selectedAgentIds.includes(agent.id) ? "✓" : "+"}</span>
               </Button>
+              <label className={styles.adversaryToggle}>
+                <input type="checkbox" aria-label={`Adversary: ${agent.name}`} aria-describedby="adversary-help" checked={adversaryIds.includes(agent.id)} disabled={busy || !selectedAgentIds.includes(agent.id)} onChange={(event) => onChange({ ...config, adversaryIds: event.target.checked ? [...adversaryIds, agent.id] : adversaryIds.filter((id) => id !== agent.id) })} />
+                Adversary
+              </label>
             </Card>)}
           </div>
         </section>
@@ -102,7 +107,7 @@ export function ScenarioSetup({ config, onChange, onStart, busy = false }: { bus
           <div className={styles.briefDetails}><div><strong>KEEP IN MIND</strong><ul>{scenario.guidelines.map((line) => <li key={line}>{line}</li>)}</ul></div><div className={styles.deliverable}><strong>DELIVERABLES</strong><p>{scenario.deliverable}</p></div></div>
         </section>
 
-        <div className={styles.startBar}><span>{participants.length < 2 ? "Choose at least two people to start." : `${scenario.title} · ${participants.length} people · ${location.name} · ${maxTurns} turns`}</span><Button type="button" variant="ghost" className={styles.primaryButton} onClick={onStart} disabled={participants.length < 2 || busy}>Enter discussion <span>→</span></Button></div>
+        <div className={styles.startBar}><span>{participants.length < 2 ? "Choose at least two people to start." : `${scenario.title} · ${participants.length} people · ${location.name} · ${maxTurns} turns${adversaryIds.length ? ` · ${adversaryIds.length} ${adversaryIds.length === 1 ? "adversary" : "adversaries"}` : ""}`}</span><Button type="button" variant="ghost" className={styles.primaryButton} onClick={onStart} disabled={participants.length < 2 || busy}>Enter discussion <span>→</span></Button></div>
         <footer className={styles.footer}><a className={styles.brand} href="#top"><Image className={styles.brandLogo} src="/nanoville-logo-horizontal.png" alt="nanoville" width={2172} height={724} /></a></footer>
       </div>
     </main>

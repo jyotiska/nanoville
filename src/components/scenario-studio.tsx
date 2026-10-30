@@ -26,7 +26,7 @@ export default function ScenarioStudio() {
 }
 function StudioContent() {
   const { scenarios, defaultModel } = useCatalog();
-  const [config, setConfig] = useState<StudioConfig>({ scenarioId: scenarios[0].id, participantIds: scenarios[0].suggestedAgents, locationId: "meeting-room", model: defaultModel, maxTurns: 20, judgeEnabled: false });
+  const [config, setConfig] = useState<StudioConfig>({ scenarioId: scenarios[0].id, participantIds: scenarios[0].suggestedAgents, adversaryIds: [], locationId: "meeting-room", model: defaultModel, maxTurns: 20, judgeEnabled: false });
   const [inspectedAgent, setInspectedAgent] = useState<Agent | null>(null);
   const [innerVoiceAgent, setInnerVoiceAgent] = useState<Agent | null>(null);
   const discussion = useDiscussion();
@@ -70,6 +70,7 @@ function StudioContent() {
             <div><h1>{scenario.title}</h1></div>
             <div className={styles.peoplePills}>{[...participants, ...(judgeEnabled ? [judge] : [])].map((agent) => <DialogTrigger key={agent.id} onClick={() => setInspectedAgent(agent)}>{agent.name}</DialogTrigger>)}</div>
           </div>
+          {session.config?.adversaryIds.length ? <p className={styles.adversaryHelp}>Observer only · Adversaries: {participants.filter((agent) => session.config!.adversaryIds.includes(agent.id)).map((agent) => agent.name).join(", ")}. Assignments are fixed for this session and hidden from participants and the judge.</p> : null}
           <div className={`${styles.workspace} ${innerVoiceAgent ? styles.workspaceWithInnerVoice : ""}`}>
             <section className={styles.sceneColumn} aria-label={`${location.name} discussion scene`}>
               <SessionScene session={session} busy={busy} locationId={config.locationId} sessionLabel={sessionLabel} onInspect={setInspectedAgent} />
