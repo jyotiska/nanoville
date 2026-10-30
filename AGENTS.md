@@ -1,6 +1,6 @@
 ## Project
 
-nanoville is one local-first Next.js 16.4 application using the App Router, React 19, strict TypeScript, and either local Ollama MLX models or OpenAI through Chorus. Sessions belong to Chorus and persist in SQLite. The browser remembers a session ID and renders committed backend state.
+nanoville is one local-first Next.js 16.4 application using the App Router, React 19, strict TypeScript, and local Ollama MLX models, OpenAI, or OpenRouter through Chorus. Sessions belong to Chorus and persist in SQLite. The browser remembers a session ID and renders committed backend state.
 
 ## Development
 
@@ -30,7 +30,7 @@ Chorus is the Python execution backend on port 43187. nanoville runs on 43188 an
 - `src/data/`: frontend artwork and location presentation. Semantic scenarios/personas/models are served by Chorus.
 - `tests/`: component/client tests and browser journeys against real Chorus and fake Ollama. Backend regression source references live in Chorus's `tests/reference/nanoville/` and executable regressions in its Python tests.
 
-Never call Ollama or OpenAI from the application. Do not duplicate backend policies or apply canvas edits in the browser. Journals remain outside public context. Browser tests reserve ports 3100, 43190, and 11435. See TEST_PLAN.md.
+Never call Ollama, OpenAI, or OpenRouter from the application. Do not duplicate backend policies or apply canvas edits in the browser. Journals remain outside public context. Browser tests reserve ports 3100, 43190, and 11435. See TEST_PLAN.md.
 
 ## Behavioral invariants
 

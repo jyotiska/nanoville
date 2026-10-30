@@ -56,3 +56,11 @@ All catalog models can use the judge, including MLX runners that do not enforce 
 - The model selector has exactly two Local MLX choices (Qwen 3.5 0.8B and 4B) plus GPT-6-Luna under OpenAI APIs. Qwen 4B is the default.
 - Component tests cover selecting/submitting OpenAI, missing-key availability, and restoring a retired model without losing the document. Browser journeys cover the retained MLX IDs, checkpoints, final judging, cancellation, reload, and private-assignment isolation.
 - OpenAI transport and generation-path tests live in Chorus. A live OpenAI request remains unverified because CHORUS_API_KEY is not configured locally.
+
+
+## OpenRouter integration — 30 October 2026
+
+- `npm run check` passed: lint, type checking, 20 component/client tests, production build, and 14 browser journeys.
+- The selector has three provider groups and six models. Qwen 3.5 4B MLX remains the default; the OpenRouter group contains exactly DeepSeek V4.1 Flash 1017, MiniMax M3.1 Flash, and GLM 5.3 Flash.
+- Component and browser tests verify selecting/submitting each exact OpenRouter model ID and disabling only those three choices when OPENROUTER_API_KEY is missing. Browser tests explicitly blank both cloud credentials to avoid live requests.
+- Backend live checks and model reasoning requirements are recorded in Chorus's TEST_PLAN.md.

@@ -77,10 +77,10 @@ test("judge setup allows every catalog model, including MLX", async () => {
   }
 });
 
-test("groups exactly three models and submits the selected OpenAI model", async () => {
+test("groups six models and submits the selected OpenAI model", async () => {
   setup();
   const model = await screen.findByLabelText("Model", { exact: true });
-  expect(Array.from((model as HTMLSelectElement).options).map((option) => option.value)).toEqual(["qwen3.5:0.8b-mlx", "qwen3.5:4b-mlx", "gpt-6-luna"]);
+  expect(Array.from((model as HTMLSelectElement).options).map((option) => option.value)).toEqual(["qwen3.5:0.8b-mlx", "qwen3.5:4b-mlx", "gpt-6-luna", "deepseek/deepseek-v4.1-flash-1017", "minimax/minimax-m3.1-flash", "z-ai/glm-5.3-flash"]);
   expect((model as HTMLSelectElement).value).toBe("qwen3.5:4b-mlx");
   expect(screen.getByRole("group", { name: "OpenAI APIs" })).toBeTruthy();
   fireEvent.change(model, { target: { value: "gpt-6-luna" } });
@@ -195,4 +195,25 @@ test("restored assignments appear only in observer controls and profiles and can
   fireEvent.click(screen.getByRole("button", { name: "Riley Chen" }));
   expect(screen.getByText(/Adversary · Observer only/)).toBeTruthy();
   expect(ChorusClient.prototype.create).not.toHaveBeenCalled();
+});
+
+
+test.each(["deepseek/deepseek-v4.1-flash-1017", "minimax/minimax-m3.1-flash", "z-ai/glm-5.3-flash"])("submits the selected OpenRouter model %s", async (id) => {
+  setup();
+  const model = await screen.findByRole("combobox", { name: "Model" });
+  expect(screen.getByRole("group", { name: "OpenRouter" })).toBeTruthy();
+  fireEvent.change(model, { target: { value: id } });
+  fireEvent.click(screen.getByRole("button", { name: /Enter discussion/ }));
+  await waitFor(() => expect(ChorusClient.prototype.create).toHaveBeenCalledWith(expect.objectContaining({ model: id })));
+});
+
+test("missing OpenRouter credentials disable only its three choices", async () => {
+  vi.mocked(ChorusClient.prototype.catalog).mockResolvedValue({ ...catalog, models: catalog.models.map((item) => ({ ...item, available: item.provider !== "openrouter", unavailableReason: item.provider === "openrouter" ? "Set OPENROUTER_API_KEY in the Chorus backend environment and restart Chorus." : null })) });
+  setup();
+  const enter = await screen.findByRole("button", { name: /Enter discussion/ });
+  const group = screen.getByRole("group", { name: "OpenRouter" });
+  expect(Array.from(group.querySelectorAll("option")).every((option) => option.disabled)).toBe(true);
+  expect(screen.getAllByText(/Set OPENROUTER_API_KEY/)).toHaveLength(3);
+  expect((screen.getByRole("option", { name: "GPT-6-Luna" }) as HTMLOptionElement).disabled).toBe(false);
+  expect((enter as HTMLButtonElement).disabled).toBe(false);
 });
