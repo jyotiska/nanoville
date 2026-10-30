@@ -1,7 +1,7 @@
 {
   "id": "f8182d1d-731c-40ce-9973-48d2be550198",
   "revision": 0,
-  "engineVersion": "discussion-v24-python2",
+  "engineVersion": "discussion-v24-python1",
   "config": {
     "scenarioId": "ai-feature-launch",
     "participantIds": [
@@ -10,7 +10,8 @@
     ],
     "model": "qwen3.5:4b-mlx",
     "maxTurns": 5,
-    "judgeEnabled": false
+    "judgeEnabled": false,
+    "adversaryIds": []
   },
   "scenario": {
     "id": "ai-feature-launch",

@@ -136,6 +136,42 @@
   height: 100%;
 }
 
+.adversaryHelp {
+  margin: 0 0 16px;
+  max-width: 780px;
+  color: #68796b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.adversaryToggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px;
+  color: #685342;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.adversaryToggle:has(input:disabled) {
+  color: #889188;
+  cursor: default;
+}
+
+.adversaryToggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: #685342;
+}
+
+.adversaryNote {
+  margin: 0;
+  color: #685342;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .scenarioCard {
   display: block;
   width: 100%;
@@ -202,7 +238,8 @@
 .agentOption {
   display: flex;
   width: 100%;
-  height: 100%;
+  height: auto;
+  min-height: 58px;
   min-width: 0;
   align-items: center;
   gap: 8px;

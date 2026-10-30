@@ -39,3 +39,12 @@ All catalog models can use the judge, including MLX runners that do not enforce 
 - Live checkpoint and final reviews passed with all five installed catalog models: Qwen 3 4B, Qwen 3.5 MLX 0.8B/2B/4B, and Gemma 4 E2B MLX. Each MLX model also passed an empty-canvas final review. Gemma 4 E4B MLX was not installed and was not tested live.
 - An isolated copy of the five-slot pricing discussion resumed through a real Qwen 0.8B MLX checkpoint, then committed an early-stop final review incorporating the published checkpoint feedback. Its participant slots and canvas remained unchanged; the original user session was preserved.
 - The Chorus backend suite passed 97 tests covering compatibility, evidence validation, retries, cancellation, context budgets, token accounting, and recovery without repeated participant turns. No partial review is published if generation fails or is cancelled.
+
+
+## Private adversaries — 30 October 2026
+
+- Setup supports separate adversary checkboxes for selected participants, including multiple/all selections. Deselecting a participant removes their assignment; changing scenarios prunes assignments outside the new team. Creation forwards IDs only, without browser-authored prompts or public-history changes.
+- Restored assignments appear in an observer-only session summary and agent profiles; they cannot be edited during a session. Reload, pause/resume, and backend restart preserve the assignment. Original persona displays and stat rules remain the baseline.
+- Full `npm run check` passed: lint, types, 13 unit/component/client tests, production build, and 10 browser journeys. The adversary journey includes two selected agents, reload/resume, an MLX checkpoint and final review, and verification that every fake-model call receives only the intended agent's assignment. Existing cancellation, skip, evidence, journal-isolation, and stat journeys remain green.
+- Inspected desktop/mobile setup and observer-profile screenshots under `test-results/`. Corrected clipped mobile checkbox rows and verified unselected rows show disabled controls.
+- The idle local app and backend were refreshed with existing sessions preserved. Start a new session to use the new engine. Model compliance and secrecy through generated behavior remain probabilistic; assignment metadata is excluded from peer/judge inputs.

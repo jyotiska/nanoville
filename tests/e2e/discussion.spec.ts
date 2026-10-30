@@ -181,3 +181,43 @@ test("opens and controls a session created outside nanoville", async ({ page, re
   await expect(page.getByRole("button", { name: "▶ Resume" })).toBeVisible();
   expect((await (await request.get(`/api/chorus/sessions/${created.id}`)).json()).status).toBe("paused");
 });
+
+test("multiple private adversaries survive reload while participants and every judge call stay blind", async ({ page, request }) => {
+  test.setTimeout(60000);
+  await request.post(`${modelHost}/reset`, { data: { canvasDelayMs: 150 } });
+  await page.goto("/");
+  await page.getByRole("checkbox", { name: "Adversary: Riley Chen" }).check();
+  await page.getByRole("checkbox", { name: "Adversary: Jordan Brooks" }).check();
+  await page.getByLabel("Ollama model").selectOption("qwen3.5:2b-mlx");
+  await page.getByLabel("Number of turns").selectOption("10");
+  await page.getByRole("combobox", { name: "Judge", exact: true }).selectOption("yes");
+  await page.screenshot({ path: "test-results/adversary-setup.png", fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("checkbox", { name: "Adversary: Riley Chen" }).scrollIntoViewIfNeeded();
+  await expect(page.getByRole("checkbox", { name: "Adversary: Alex Okafor" })).toBeVisible();
+  await page.screenshot({ path: "test-results/adversary-setup-mobile.png" });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.getByRole("button", { name: /Enter discussion/ }).click();
+  await expect(page.getByText(/Observer only · Adversaries: Riley Chen, Jordan Brooks/)).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Chat conversation" }).getByRole("article")).toHaveCount(1);
+  await page.getByRole("button", { name: "Ⅱ Pause" }).click();
+  await expect(page.getByRole("button", { name: "▶ Resume" })).toBeVisible();
+  const id = await page.evaluate(() => localStorage.getItem("nanoville.chorus-session"));
+  await page.reload();
+  await expect(page.getByText(/Observer only · Adversaries: Riley Chen, Jordan Brooks/)).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: /Adversary:/ })).toHaveCount(0);
+  await page.getByRole("button", { name: "Riley Chen", exact: true }).click();
+  await expect(page.getByText(/Adversary · Observer only/)).toBeVisible();
+  await page.screenshot({ path: "test-results/adversary-profile.png", animations: "disabled" });
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "▶ Resume" }).click();
+  await expect(page.getByText("The team drafted a narrow trial.", { exact: true })).toBeVisible({ timeout: 40000 });
+  const saved = await (await request.get(`/api/chorus/sessions/${id}`)).json();
+  expect(saved.config.adversaryIds).toEqual(["software-engineer", "product-manager"]);
+  const state = await (await request.get(`${modelHost}/state`)).json();
+  expect(state).toMatchObject({ checkpointCalls: 1, finalCalls: 1, privateLeak: false });
+  expect(state.assignmentCalls.some((call: { assigned: boolean }) => call.assigned)).toBe(true);
+  for (const call of state.assignmentCalls) {
+    expect(call.assigned).toBe(call.phase !== "judge" && ["Riley Chen", "Jordan Brooks"].includes(call.speaker));
+  }
+});
