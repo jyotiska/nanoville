@@ -1,6 +1,40 @@
 import { expect, test } from "@playwright/test";
 
 const modelHost = "http://127.0.0.1:11435";
+
+for (const model of ["deepseek/deepseek-v4.1-flash-1017", "minimax/minimax-m3.1-flash", "z-ai/glm-5.3-flash"]) {
+  test(`selects OpenRouter model ${model} and submits its exact ID`, async ({ page }) => {
+    await page.route("**/api/chorus/catalog", async (route) => {
+      const response = await route.fetch();
+      const catalog = await response.json();
+      catalog.models = catalog.models.map((item: { provider: string }) => ({ ...item, available: true, unavailableReason: null }));
+      await route.fulfill({ response, json: catalog });
+    });
+    await page.route("**/api/chorus/sessions", async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      expect(route.request().postDataJSON().model).toBe(model);
+      await route.fulfill({ status: 502, json: { code: "MODEL_REQUEST_FAILED", error: "OpenRouter selection verified.", requestId: "test" } });
+    });
+    await page.goto("/");
+    const select = page.getByRole("combobox", { name: "Model", exact: true });
+    await expect(select).toHaveValue("qwen3.5:4b-mlx");
+    await expect(select.locator("optgroup")).toHaveCount(3);
+    await expect(select.locator('optgroup[label="OpenRouter"] option')).toHaveCount(3);
+    await select.selectOption(model);
+    await page.getByRole("button", { name: /Enter discussion/ }).click();
+    await expect(page.getByText("OpenRouter selection verified.", { exact: true })).toBeVisible();
+  });
+}
+
+test("missing OpenRouter credentials leave local models usable", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: /Enter discussion/ })).toBeEnabled();
+  const group = page.getByRole("combobox", { name: "Model", exact: true }).locator('optgroup[label="OpenRouter"]');
+  await expect(group.locator("option")).toHaveCount(3);
+  await expect(group.locator("option:disabled")).toHaveCount(3);
+  await expect(page.getByText(/Set OPENROUTER_API_KEY/)).toHaveCount(3);
+});
+
 test.beforeEach(async ({ request }) => {
   // Browser teardown no longer cancels server-owned execution. Pause older runs
   // before resetting the shared fake model's counters.

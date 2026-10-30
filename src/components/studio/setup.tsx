@@ -77,7 +77,7 @@ export function ScenarioSetup({ config, onChange, onStart, busy = false }: { bus
           <label className={styles.modelField} htmlFor="discussion-model">
             <span id="discussion-model-label">Model</span>
             <NativeSelect className={styles.nativeSelect} id="discussion-model" aria-labelledby="discussion-model-label" value={model} onChange={(event) => models.some((model) => model.id === event.target.value && model.available !== false) && onChange({ ...config, model: event.target.value })}>
-              {(["ollama", "openai"] as const).map((provider) => <optgroup key={provider} label={provider === "openai" ? "OpenAI APIs" : "Local MLX"}>
+              {(["ollama", "openai", "openrouter"] as const).map((provider) => <optgroup key={provider} label={provider === "openrouter" ? "OpenRouter" : provider === "openai" ? "OpenAI APIs" : "Local MLX"}>
                 {models.filter((item) => item.provider === provider).map((item) => <NativeSelectOption key={item.id} value={item.id} disabled={item.available === false}>{item.label}{item.available === false ? " — unavailable" : ""}</NativeSelectOption>)}
               </optgroup>)}
             </NativeSelect>

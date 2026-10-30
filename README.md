@@ -26,16 +26,16 @@ nanoville sends all model work to Chorus. For local models, start Ollama, then C
 
 - Node.js 24 (see `.nvmrc`) and npm
 - Python 3.11 or newer, for Chorus
-- Either [Ollama](https://ollama.com) with a supported MLX model installed, or `CHORUS_API_KEY` configured in the Chorus backend for OpenAI
+- Either [Ollama](https://ollama.com) with a supported MLX model installed, or the appropriate API key configured in Chorus (`CHORUS_API_KEY` for OpenAI or `OPENROUTER_API_KEY` for OpenRouter)
 - A Unix-like environment; Chorus uses file locking for its SQLite store
 
 ### 1. Start Ollama and install a model
 
-The model dropdown contains Local MLX choices **Qwen 3.5 0.8B MLX** (`qwen3.5:0.8b-mlx`) and **Qwen 3.5 4B MLX** (`qwen3.5:4b-mlx`, default), plus **GPT-6-Luna** (`gpt-6-luna`) under OpenAI APIs.
+The model dropdown contains Local MLX choices **Qwen 3.5 0.8B MLX** (`qwen3.5:0.8b-mlx`) and **Qwen 3.5 4B MLX** (`qwen3.5:4b-mlx`, default), plus **GPT-6-Luna** (`gpt-6-luna`) under OpenAI APIs. The **OpenRouter** group adds **DeepSeek V4.1 Flash 1017** (`deepseek/deepseek-v4.1-flash-1017`), **MiniMax M3.1 Flash** (`minimax/minimax-m3.1-flash`), and **GLM 5.3 Flash** (`z-ai/glm-5.3-flash`).
 
 For local inference, start Ollama on `http://localhost:11434` with one of those exact model IDs installed. Set `OLLAMA_HOST` in the Chorus environment if it runs elsewhere. Chorus does not download or substitute a model.
 
-For OpenAI, set `CHORUS_API_KEY` in the backend environment or `../chorus/.env`, then restart Chorus and refresh the page. Keep the credential out of this app's `.env.local`. Missing credentials disable the OpenAI choice with setup instructions. An Ollama outage leaves configured OpenAI available. Availability indicates configuration, not verified OpenAI account access or quota. The selected model powers the discussion, shared document, private journals, and judging.
+For OpenAI, set `CHORUS_API_KEY` in the backend environment or `../chorus/.env`, then restart Chorus and refresh the page. Keep the credential out of this app's `.env.local`. Missing credentials disable the OpenAI choice with setup instructions. An Ollama outage leaves configured OpenAI available. Availability indicates configuration, not verified OpenAI account access or quota. For OpenRouter, set `OPENROUTER_API_KEY` in the Chorus backend environment or `../chorus/.env`, restart Chorus, and refresh the page. Each cloud provider reports availability independently; its key stays in Chorus. OpenRouter also requires account credit and access to the selected model. The selected model powers the discussion, shared document, private journals, and judging.
 
 ### 2. Install and start Chorus
 
@@ -87,7 +87,7 @@ On the setup screen:
 1. Choose a challenge. The page fills in that scenario’s suggested team.
 2. Keep 2–5 participants. Optionally mark any selected participants as **Adversary**.
 3. Choose a location. Locations are presentation only and do not change the scenario.
-4. Choose an available local or OpenAI model.
+4. Choose an available local, OpenAI, or OpenRouter model.
 5. Choose a length of 5, 10, 20, 50, 75, or 100 turns. The default is 20.
 6. Leave Judge on No, or set it to Yes for checkpoint reviews.
 7. Choose **Enter discussion**. The session is created and started immediately.
@@ -186,13 +186,13 @@ At the turn limit the judge writes only a final judgement, shown in its own pane
 
 ## Architecture
 
-Chorus is the authority for a session. nanoville renders committed state and sends user commands. Ollama or OpenAI performs inference only when Chorus asks it to.
+Chorus is the authority for a session. nanoville renders committed state and sends user commands. Ollama, OpenAI, or OpenRouter performs inference only when Chorus asks it to.
 
 ```text
 Browser
   ChorusClient  →  /api/chorus/*          (same origin)
 Next.js route  →  CHORUS_API_URL/api/v1/* (server-side proxy)
-Chorus         →  Ollama or OpenAI        (model calls, validation, SQLite)
+Chorus         →  Ollama / OpenAI / OpenRouter (model calls, validation, SQLite)
 ```
 
 The browser client in `src/api/chorus/client.ts` validates every catalog, snapshot, command result, and journal against the generated JSON Schema before React state changes. Session updates arrive as server-sent `snapshot` events. The client reconnects with the last seen revision and also refetches the snapshot when the stream opens, so a dropped connection does not start a second run. Journals use a separate request and are merged into the open session only when they still match the current id and revision.
