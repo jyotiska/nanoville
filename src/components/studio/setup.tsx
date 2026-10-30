@@ -10,8 +10,9 @@ import styles from "../scenario-studio.module.css";
 
 export type StudioConfig = SessionConfig & { locationId: LocationId };
 export function ScenarioSetup({ config, onChange, onStart, busy = false }: { busy?: boolean; config: StudioConfig; onChange: (config: StudioConfig) => void; onStart: () => void }) {
-  const { agents, scenarios, models: ollamaModels } = useCatalog();
+  const { agents, scenarios, models } = useCatalog();
   const { scenarioId, participantIds: selectedAgentIds, adversaryIds, locationId, model, maxTurns, judgeEnabled } = config;
+  const selectedModel = models.find((item) => item.id === model);
   const scenario = scenarios.find((item) => item.id === scenarioId)!;
   const location = locations.find((item) => item.id === locationId)!;
   const participants = agents.filter((agent) => selectedAgentIds.includes(agent.id));
@@ -72,13 +73,16 @@ export function ScenarioSetup({ config, onChange, onStart, busy = false }: { bus
         </section>
 
         <section className={styles.setupSection}>
-          <div className={styles.sectionTitle}><span>04</span><div><h2>Choose a local model</h2><p>This model will power the discussion and shared document.</p></div></div>
-          <label className={styles.modelField} htmlFor="ollama-model">
-            <span>Ollama model</span>
-            <NativeSelect className={styles.nativeSelect} id="ollama-model" value={model} onChange={(event) => ollamaModels.some((model) => model.id === event.target.value) && onChange({ ...config, model: event.target.value })}>
-              {ollamaModels.map((item) => <NativeSelectOption key={item.id} value={item.id}>{item.label}</NativeSelectOption>)}
+          <div className={styles.sectionTitle}><span>04</span><div><h2>Choose a model</h2><p>This model will power the discussion and shared document.</p></div></div>
+          <label className={styles.modelField} htmlFor="discussion-model">
+            <span id="discussion-model-label">Model</span>
+            <NativeSelect className={styles.nativeSelect} id="discussion-model" aria-labelledby="discussion-model-label" value={model} onChange={(event) => models.some((model) => model.id === event.target.value && model.available !== false) && onChange({ ...config, model: event.target.value })}>
+              {(["ollama", "openai"] as const).map((provider) => <optgroup key={provider} label={provider === "openai" ? "OpenAI APIs" : "Local MLX"}>
+                {models.filter((item) => item.provider === provider).map((item) => <NativeSelectOption key={item.id} value={item.id} disabled={item.available === false}>{item.label}{item.available === false ? " — unavailable" : ""}</NativeSelectOption>)}
+              </optgroup>)}
             </NativeSelect>
           </label>
+          {models.filter((item) => item.unavailableReason).map((item) => <p key={item.id} className={styles.adversaryHelp}>{item.label}: {item.unavailableReason}</p>)}
         </section>
 
         <section className={styles.setupSection}>
@@ -107,7 +111,7 @@ export function ScenarioSetup({ config, onChange, onStart, busy = false }: { bus
           <div className={styles.briefDetails}><div><strong>KEEP IN MIND</strong><ul>{scenario.guidelines.map((line) => <li key={line}>{line}</li>)}</ul></div><div className={styles.deliverable}><strong>DELIVERABLES</strong><p>{scenario.deliverable}</p></div></div>
         </section>
 
-        <div className={styles.startBar}><span>{participants.length < 2 ? "Choose at least two people to start." : `${scenario.title} · ${participants.length} people · ${location.name} · ${maxTurns} turns${adversaryIds.length ? ` · ${adversaryIds.length} ${adversaryIds.length === 1 ? "adversary" : "adversaries"}` : ""}`}</span><Button type="button" variant="ghost" className={styles.primaryButton} onClick={onStart} disabled={participants.length < 2 || busy}>Enter discussion <span>→</span></Button></div>
+        <div className={styles.startBar}><span>{participants.length < 2 ? "Choose at least two people to start." : `${scenario.title} · ${participants.length} people · ${location.name} · ${maxTurns} turns${adversaryIds.length ? ` · ${adversaryIds.length} ${adversaryIds.length === 1 ? "adversary" : "adversaries"}` : ""}`}</span><Button type="button" variant="ghost" className={styles.primaryButton} onClick={onStart} disabled={participants.length < 2 || busy || !selectedModel || selectedModel.available === false}>Enter discussion <span>→</span></Button></div>
         <footer className={styles.footer}><a className={styles.brand} href="#top"><Image className={styles.brandLogo} src="/nanoville-logo-horizontal.png" alt="nanoville" width={2172} height={724} /></a></footer>
       </div>
     </main>

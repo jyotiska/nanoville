@@ -7,7 +7,7 @@ import { ChorusClient, type Snapshot, type Catalog } from "@/api/chorus/client";
 import fixture from "./fixtures/backend-snapshot.json";
 import { readFileSync } from "node:fs";
 const raw = JSON.parse(readFileSync("../chorus/chorus/catalog/catalog.json", "utf8"));
-const catalog: Catalog = { agents: raw.agents.map((agent: Catalog["agents"][number]) => ({ ...agent, personality: agent.personality ?? { socialStyle: "ambiverted", challengeResponse: "balanced" } })), scenarios: raw.scenarios, models: raw.models.map((m: object) => ({ ...m, installed: null })), defaultModel: raw.defaultModel };
+const catalog: Catalog = { agents: raw.agents.map((agent: Catalog["agents"][number]) => ({ ...agent, personality: agent.personality ?? { socialStyle: "ambiverted", challengeResponse: "balanced" } })), scenarios: raw.scenarios, models: raw.models.map((m: object) => ({ provider: "ollama", ...m, installed: null, available: null, unavailableReason: null })), defaultModel: raw.defaultModel };
 const initial = fixture as Snapshot;
 let receive: (snapshot: Snapshot) => void;
 beforeEach(() => {
@@ -72,9 +72,42 @@ test("judge setup allows every catalog model, including MLX", async () => {
   const enter = await screen.findByRole("button", { name: /Enter discussion/ });
   fireEvent.change(screen.getByLabelText("Judge", { exact: true }), { target: { value: "yes" } });
   for (const model of catalog.models) {
-    fireEvent.change(screen.getByLabelText("Ollama model"), { target: { value: model.id } });
+    fireEvent.change(screen.getByLabelText("Model", { exact: true }), { target: { value: model.id } });
     expect((enter as HTMLButtonElement).disabled).toBe(false);
   }
+});
+
+test("groups exactly three models and submits the selected OpenAI model", async () => {
+  setup();
+  const model = await screen.findByLabelText("Model", { exact: true });
+  expect(Array.from((model as HTMLSelectElement).options).map((option) => option.value)).toEqual(["qwen3.5:0.8b-mlx", "qwen3.5:4b-mlx", "gpt-6-luna"]);
+  expect((model as HTMLSelectElement).value).toBe("qwen3.5:4b-mlx");
+  expect(screen.getByRole("group", { name: "OpenAI APIs" })).toBeTruthy();
+  fireEvent.change(model, { target: { value: "gpt-6-luna" } });
+  fireEvent.click(screen.getByRole("button", { name: /Enter discussion/ }));
+  await waitFor(() => expect(ChorusClient.prototype.create).toHaveBeenCalledWith(expect.objectContaining({ model: "gpt-6-luna" })));
+});
+
+test("explains missing OpenAI configuration while local choices stay usable", async () => {
+  vi.mocked(ChorusClient.prototype.catalog).mockResolvedValue({ ...catalog, models: catalog.models.map((item) => ({ ...item, available: item.provider !== "openai", unavailableReason: item.provider === "openai" ? "Set CHORUS_API_KEY in the Chorus backend environment and restart Chorus." : null })) });
+  setup();
+  const enter = await screen.findByRole("button", { name: /Enter discussion/ });
+  expect((screen.getByRole("option", { name: /GPT-6-Luna/ }) as HTMLOptionElement).disabled).toBe(true);
+  expect(screen.getByText(/Set CHORUS_API_KEY/)).toBeTruthy();
+  expect((enter as HTMLButtonElement).disabled).toBe(false);
+});
+
+test("a retired model restoration blocks Resume and preserves the document", async () => {
+  const saved: Snapshot = { ...initial, status: "paused", config: { ...initial.config, model: "qwen3:4b" }, canvas: "# Saved work\n\nPreserved historical output." };
+  localStorage.setItem("nanoville.chorus-session", saved.id);
+  vi.mocked(ChorusClient.prototype.get).mockResolvedValue(saved);
+  setup();
+  const resume = await screen.findByRole("button", { name: "▶ Resume" });
+  expect((resume as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByText(/This session uses a retired model/)).toBeTruthy();
+  expect(screen.getByText("Preserved historical output.")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "← Back to setup" }));
+  expect((await screen.findByLabelText("Model", { exact: true }) as HTMLSelectElement).value).toBe("qwen3.5:4b-mlx");
 });
 
 function committedState(): Snapshot {

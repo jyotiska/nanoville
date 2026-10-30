@@ -20,24 +20,22 @@ Three processes run together:
 
 ## Run nanoville
 
-nanoville does not call Ollama itself. Start Ollama, then Chorus, then this app. Chorus must already be checked out as a sibling of this repository (`../chorus`).
+nanoville sends all model work to Chorus. For local models, start Ollama, then Chorus, then this app. OpenAI sessions require Chorus and this app. Chorus must already be checked out as a sibling of this repository (`../chorus`).
 
 ### Requirements
 
 - Node.js 24 (see `.nvmrc`) and npm
 - Python 3.11 or newer, for Chorus
-- [Ollama](https://ollama.com) running locally, with at least one catalog model installed
+- Either [Ollama](https://ollama.com) with a supported MLX model installed, or `CHORUS_API_KEY` configured in the Chorus backend for OpenAI
 - A Unix-like environment; Chorus uses file locking for its SQLite store
 
 ### 1. Start Ollama and install a model
 
-Start the Ollama app or service so it listens on `http://localhost:11434`. Install a model from the Chorus catalog. The studio defaults to `qwen3:4b`. Every catalog model can supply judge reviews.
+The model dropdown contains Local MLX choices **Qwen 3.5 0.8B MLX** (`qwen3.5:0.8b-mlx`) and **Qwen 3.5 4B MLX** (`qwen3.5:4b-mlx`, default), plus **GPT-6-Luna** (`gpt-6-luna`) under OpenAI APIs.
 
-```bash
-ollama pull qwen3:4b
-```
+For local inference, start Ollama on `http://localhost:11434` with one of those exact model IDs installed. Set `OLLAMA_HOST` in the Chorus environment if it runs elsewhere. Chorus does not download or substitute a model.
 
-Other catalog IDs are `qwen3.5:0.8b-mlx`, `qwen3.5:2b-mlx`, `qwen3.5:4b-mlx`, `gemma4:e2b-mlx`, and `gemma4:e4b-mlx`. Chorus reports which of these are installed and does not download or substitute a model. If Ollama runs on another host or port, set `OLLAMA_HOST` in the Chorus environment before starting the backend.
+For OpenAI, set `CHORUS_API_KEY` in the backend environment or `../chorus/.env`, then restart Chorus and refresh the page. Keep the credential out of this app's `.env.local`. Missing credentials disable the OpenAI choice with setup instructions. An Ollama outage leaves configured OpenAI available. Availability indicates configuration, not verified OpenAI account access or quota. The selected model powers the discussion, shared document, private journals, and judging.
 
 ### 2. Install and start Chorus
 
@@ -89,7 +87,7 @@ On the setup screen:
 1. Choose a challenge. The page fills in that scenario’s suggested team.
 2. Keep 2–5 participants. Optionally mark any selected participants as **Adversary**.
 3. Choose a location. Locations are presentation only and do not change the scenario.
-4. Choose an installed local model.
+4. Choose an available local or OpenAI model.
 5. Choose a length of 5, 10, 20, 50, 75, or 100 turns. The default is 20.
 6. Leave Judge on No, or set it to Yes for checkpoint reviews.
 7. Choose **Enter discussion**. The session is created and started immediately.
@@ -105,7 +103,7 @@ npm run build
 npm start
 ```
 
-`npm start` also serves [http://localhost:43188](http://localhost:43188) and still requires Chorus and Ollama.
+`npm start` also serves [http://localhost:43188](http://localhost:43188) and still requires Chorus and your selected model provider.
 
 ## Discussions
 
@@ -188,13 +186,13 @@ At the turn limit the judge writes only a final judgement, shown in its own pane
 
 ## Architecture
 
-Chorus is the authority for a session. nanoville renders committed state and sends user commands. Ollama performs inference only when Chorus asks it to.
+Chorus is the authority for a session. nanoville renders committed state and sends user commands. Ollama or OpenAI performs inference only when Chorus asks it to.
 
 ```text
 Browser
   ChorusClient  →  /api/chorus/*          (same origin)
 Next.js route  →  CHORUS_API_URL/api/v1/* (server-side proxy)
-Chorus         →  Ollama                  (model calls, validation, SQLite)
+Chorus         →  Ollama or OpenAI        (model calls, validation, SQLite)
 ```
 
 The browser client in `src/api/chorus/client.ts` validates every catalog, snapshot, command result, and journal against the generated JSON Schema before React state changes. Session updates arrive as server-sent `snapshot` events. The client reconnects with the last seen revision and also refetches the snapshot when the stream opens, so a dropped connection does not start a second run. Journals use a separate request and are merged into the open session only when they still match the current id and revision.
@@ -269,3 +267,5 @@ All catalog models can run with the judge enabled, including the MLX models. Cho
 The compatibility path may make more model calls. Token totals include its calls and retries. Failed or cancelled reviews preserve committed work and publish no partial feedback.
 
 Start a new discussion after the 23 October engine update to use this behavior. Earlier discussions and canvases remain readable and exportable.
+
+Saved sessions using retired models remain readable and exportable. Resume is disabled for those sessions; return to setup to create a new one with a supported model.

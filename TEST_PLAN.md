@@ -48,3 +48,11 @@ All catalog models can use the judge, including MLX runners that do not enforce 
 - Full `npm run check` passed: lint, types, 13 unit/component/client tests, production build, and 10 browser journeys. The adversary journey includes two selected agents, reload/resume, an MLX checkpoint and final review, and verification that every fake-model call receives only the intended agent's assignment. Existing cancellation, skip, evidence, journal-isolation, and stat journeys remain green.
 - Inspected desktop/mobile setup and observer-profile screenshots under `test-results/`. Corrected clipped mobile checkbox rows and verified unselected rows show disabled controls.
 - The idle local app and backend were refreshed with existing sessions preserved. Start a new session to use the new engine. Model compliance and secrecy through generated behavior remain probabilistic; assignment metadata is excluded from peer/judge inputs.
+
+
+## Model providers — 30 October 2026
+
+- `npm run check` passed: lint, type checking, 16 unit/component tests, production build, and all 10 browser journeys.
+- The model selector has exactly two Local MLX choices (Qwen 3.5 0.8B and 4B) plus GPT-6-Luna under OpenAI APIs. Qwen 4B is the default.
+- Component tests cover selecting/submitting OpenAI, missing-key availability, and restoring a retired model without losing the document. Browser journeys cover the retained MLX IDs, checkpoints, final judging, cancellation, reload, and private-assignment isolation.
+- OpenAI transport and generation-path tests live in Chorus. A live OpenAI request remains unverified because CHORUS_API_KEY is not configured locally.

@@ -19,7 +19,7 @@ test.beforeEach(async ({ request }) => {
 test("a 20-turn discussion completes three checkpoints and one final judgement", async ({ page, request }) => {
   test.setTimeout(60000);
   await page.goto("/");
-  await page.getByLabel("Ollama model").selectOption("qwen3.5:2b-mlx");
+  await page.getByRole("combobox", { name: "Model", exact: true }).selectOption("qwen3.5:0.8b-mlx");
   await page.getByLabel("Number of turns").selectOption("20");
   await page.getByRole("combobox", { name: "Judge", exact: true }).selectOption("yes");
   await page.getByRole("button", { name: /Enter discussion/ }).click();
@@ -188,7 +188,7 @@ test("multiple private adversaries survive reload while participants and every j
   await page.goto("/");
   await page.getByRole("checkbox", { name: "Adversary: Riley Chen" }).check();
   await page.getByRole("checkbox", { name: "Adversary: Jordan Brooks" }).check();
-  await page.getByLabel("Ollama model").selectOption("qwen3.5:2b-mlx");
+  await page.getByRole("combobox", { name: "Model", exact: true }).selectOption("qwen3.5:0.8b-mlx");
   await page.getByLabel("Number of turns").selectOption("10");
   await page.getByRole("combobox", { name: "Judge", exact: true }).selectOption("yes");
   await page.screenshot({ path: "test-results/adversary-setup.png", fullPage: true });
