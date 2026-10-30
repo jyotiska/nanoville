@@ -645,6 +645,57 @@
   transform: translate(-50%, -3px);
 }
 
+.statPopupStack {
+  position: absolute;
+  z-index: 8;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  pointer-events: none;
+}
+
+.statPopup {
+  position: absolute;
+  left: 0;
+  display: flex;
+  gap: 7px;
+  padding: 6px 9px;
+  border: 2px solid #334e40;
+  border-radius: 5px;
+  background: #fffdf0;
+  box-shadow: 3px 3px 0 #334e4030;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  animation: statFloat 2800ms ease-out forwards;
+}
+
+.statGain { color: #24613c; }
+.statLoss { color: #a33c39; }
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes statFloat {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(0.9); }
+  12%, 72% { opacity: 1; transform: translate(-50%, -8px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -30px) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app .statPopup { animation-name: statStill; animation-duration: 2800ms !important; }
+}
+
+@keyframes statStill {
+  0%, 90% { opacity: 1; transform: translateX(-50%); }
+  100% { opacity: 0; transform: translateX(-50%); }
+}
+
 .agentImage {
   display: block;
   width: 100%;
@@ -703,6 +754,9 @@
 .agentSpeaking {
   background: #e8f4df;
 }
+
+.activityBelowStats { bottom: auto; top: calc(100% + 6px); }
+.activityBelowStats::after { display: none; }
 
 .activityDots {
   display: flex;
@@ -1230,6 +1284,13 @@
   text-transform: capitalize;
 }
 
+.agentStats meter { display: block; width: 100%; height: 10px; margin-top: 7px; accent-color: #48765a; }
+.personalityNote { margin: 0; font-size: 12px; text-transform: capitalize; color: #68796b; }
+.statReasons { padding: 12px; border: 1px solid #dce2d7; border-radius: 8px; background: #f0f4ed; font-size: 12px; }
+.statReasons p { margin: 0 0 6px; font-weight: 700; }
+.statReasons ul { margin: 0 0 8px; padding-left: 18px; line-height: 1.5; }
+.statReasons small { color: #68796b; }
+
 @keyframes blink {
   to { opacity: 0.35; }
 }
@@ -1316,6 +1377,15 @@
   .agentSeat {
     width: 20%;
   }
+
+  .statPopup {
+    display: grid;
+    gap: 0;
+    padding: 3px 4px;
+    font-size: 10px;
+  }
+
+  .statPopupStack { bottom: calc(100% - 8px); }
 
   .speechBubble {
     font-size: 10px;

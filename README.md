@@ -113,6 +113,16 @@ npm start
 
 Entering the scene starts the discussion. Each turn is one participant’s scheduled slot, including a slot skipped after repeated invalid replies. The conversation sits on the right, newest reply first, fills the scene column, and scrolls inside the panel. Click an agent or their name badge to open a profile. Dismiss it with the close button, Escape, or a click outside.
 
+### Agent energy and confidence
+
+Agents have live energy (⚡) and confidence (💪), bounded from 0 to 100. Click an agent or their name to see meters, their social style and response to challenge, and the reasons for their latest changes. Every completed participant turn displays floating changes above the affected sprites. Reload restores saved values without replaying old effects.
+
+Personality settings are explicit in the Chorus catalog. Speaking costs introverted, ambiverted, and extroverted agents 6, 4, and 2 energy respectively. A saved canvas edit costs an additional 3 energy for introverts and 2 for others. Listening restores 4, 2, or 1 energy respectively. Speaking adds 1 confidence; a canvas contribution adds another 2.
+
+Explicitly challenging a named peer costs that peer 7, 4, or 2 confidence depending on whether their response is sensitive (non-confrontational), balanced, or resilient. Explicit rejection costs 10, 6, or 3. Adopting a proposal adds 7, 5, or 4; support adds 4, 3, or 2. These deterministic game rules use conservative phrase matching on public speech, such as “I disagree with Riley's proposal” or “We adopt Alex's idea.” Unrecognized wording, silence, and a proposal simply going unused do not imply rejection. Reasons describe the rule; displayed deltas reflect actual changes after the 0–100 limit.
+
+At energy 30 or below, agents are instructed to speak briefly and prefer focused edits. At confidence 35 or below, they use tentative phrasing and seek validation while retaining evidence-based concerns. These instructions influence model behavior without guaranteeing an exact response. Zero values never skip scheduled contributions. Skipped slots, judge reviews, cancelled work, and private journals do not change stats. Values and change reasons commit atomically with public turns in Chorus. Existing sessions remain readable; start a new discussion to use the updated engine.
+
 ### Shared canvas
 
 Every participant reads and revises one shared Markdown document under the scene. A turn adds a useful spoken contribution and, when the document needs it, one canvas revision. A turn with no substantive edit keeps the current document and continues. Agents are expected to build on existing work, address missing requirements, and label proposals and unresolved decisions. The canvas shows the full document and is read-only in the browser.
@@ -147,6 +157,8 @@ The feed labels a no-edit turn “Canvas unchanged this turn.” No-edit turns s
 Three empty, oversized, repeated, cut-off, or tool-call replies skip the slot. The pending canvas edit is discarded, earlier canvas and journals stay as they were, and no journal is written for that slot. The feed shows a system notice with empty text. The next participant continues without Resume. Skipped slots advance rotation and count toward the turn limit and judge checkpoints. Participants and the judge receive them as system notices, with separate completed and skipped counts, so skipped work is not credited. A model service failure still pauses the session and keeps completed work; Resume retries the pending turn.
 
 ### Observer journals
+
+Inner thoughts receive the agent's post-turn energy and confidence, the current turn's changes and reasons, and any listening recovery or peer reactions since their previous contribution. These are background awareness: agents may let them color a reflection without mentioning them or reciting numbers in every entry. Journal preparation previews the same state transition used at commit; it never spends energy twice or changes state if the turn is cancelled. Private thoughts remain observer-only and do not drive the stats.
 
 Each completed participant turn also records a private inner-voice entry about feelings, the task, or peers. Entries aim for one or two complete sentences and 20–40 words. Open one from the 💭 control in an agent’s profile. The journal is a third column, newest first, and scrolls when it is long. Entries are generated while the column is closed. On a narrow screen the journal sits below the discussion.
 

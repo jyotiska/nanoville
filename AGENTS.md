@@ -22,6 +22,7 @@ Use targeted tests during development and `npm run check` before handing off a c
 Chorus is the Python execution backend on port 43187. nanoville runs on 43188 and owns rendering and user controls. All model execution, validation, prompts, scheduling, cancellation, and persistence belong to Chorus. Sessions survive reloads and backend restarts; interrupted sessions recover as paused.
 
 - `src/components/studio/`: setup, scene, profiles, and panels.
+- `src/components/studio/stat-popups.tsx`: transient effects for committed stat changes; never calculate agent state in the browser.
 - `src/features/discussion/client/use-discussion.ts`: backend commands, committed events, session restoration, and separate observer journals.
 - `src/features/discussion/session.ts`: presentation types/selectors only; never choose or schedule a speaker/review.
 - `src/api/chorus/`: generated schemas/types and shared client from `../chorus/sdk/`. Regenerate from Chorus with `scripts/export_contracts.py`; never edit generated copies directly.
@@ -39,6 +40,7 @@ Never call Ollama from the application. Do not duplicate backend policies or app
 - A journal failure yields an unavailable entry and preserves valid public output. Cancelling the overall operation discards the pending turn.
 - Treat the scenario as the only verified factual source. The server preserves its evidence section verbatim in revised canvases; models generate the proposed plan and open decisions. Generated measurements, dates, and capabilities remain proposals or unknowns. Judge strengths and positive requirement assessments quote the current canvas; validate those excerpts and complete sentences before publication. Keep unpublished judge drafts out of retry context.
 - Private journals are observer-only. Never send them to participants or the judge, or use them to update persona stats.
+- Chorus updates bounded energy/confidence and public change reasons only with valid participant turns. Personality settings and state rules belong in Chorus; cancelled/skipped work and judge reviews do not alter stats. Restoring a session must not replay old floating effects.
 - Judge checkpoints occur after every five participant slots, including skipped slots, except at the turn limit, which triggers only a final review. Judge messages do not consume turns or change participant rotation.
 - Stop cancels pending work and, when enabled, reviews only committed work. Pause and Back cancel pending turns or reviews immediately. Late responses cannot commit.
 - The final deliverable is the same shared Markdown canvas; there is no extra summary request.

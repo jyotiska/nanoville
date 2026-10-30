@@ -10,6 +10,7 @@ export const judge: Agent = {
   energy: 80,
   confidence: 80,
   mood: "focused",
+  personality: { socialStyle: "ambiverted", challengeResponse: "balanced" },
   sprite: "judge",
   color: "#ede1cf",
 };
