@@ -1449,3 +1449,41 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+.usageMetadata {
+  min-width: 0;
+  margin: 6px 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.usageMetadata p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 10px;
+  margin: 3px 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.usageMetadata summary {
+  cursor: pointer;
+  margin: 4px 0;
+}
+
+.usageMetadata table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.usageMetadata th,
+.usageMetadata td {
+  text-align: left;
+  white-space: nowrap;
+  padding: 4px 8px;
+}
+
+.usageMetadata caption {
+  text-align: left;
+}

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ArrowDownToLine, ArrowUpFromLine, Timer } from "lucide-react";
+import { UsageDetails } from "@/api/chorus/usage-view";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Agent } from "@/data/agents";
@@ -31,6 +31,7 @@ export function JudgementPanel({ session, canRetry = true }: { session: Session;
         {finalJudgement ? <>
           <strong className={styles.judgeVerdict}>{finalJudgement.verdict}</strong>
           <p>{finalJudgement.summary}</p>
+          <UsageDetails details={session.finalUsageDetails} className={styles.usageMetadata} />
           <h3>Requirements assessment</h3>
           <dl className={styles.judgeRequirements}>{finalJudgement.requirements.map((item) => <div key={item.criterion}>
             <dt>{item.criterion === "Expected deliverable" ? scenario.deliverable : scenario.guidelines[Number(item.criterion.split(" ")[1]) - 1]}<span>{item.status}</span></dt>
@@ -57,7 +58,7 @@ export function DiscussionPanel({ session, busy }: { session: Session; busy: boo
           {turns.length === 0 ? <div className={styles.transcriptEmpty}>The discussion will show up here.</div> : [...turns].reverse().map((turn) => (
             <article className={`${styles.transcriptTurn} ${turn.kind === "judge" ? styles.judgeTurn : ""}`} key={`${turn.kind}-${turn.turnNumber}`}>
               <Image src={`/agents/${turn.kind === "judge" ? judge.sprite : participants.find((agent) => agent.id === turn.speakerId)?.sprite}.webp`} alt="" width={32} height={32} unoptimized />
-              <div><strong>{turn.speakerName}</strong>{turn.kind === "skipped" && <span className={styles.judgeCheckpoint}>System notice · Turn {turn.turnNumber} skipped</span>}{turn.kind === "judge" && <span className={styles.judgeCheckpoint}>Review after turn {turn.turnNumber}</span>}<p>{turn.kind === "skipped" ? "Turn skipped after repeated invalid replies. Continuing the discussion; the canvas is unchanged." : turn.text}</p><div className={styles.tokenUsage} aria-label={`Input tokens: ${turn.tokenUsage?.input ?? "unavailable"}; output tokens: ${turn.tokenUsage?.output ?? "unavailable"}; latency: ${turn.latencySeconds === undefined ? "unavailable" : `${turn.latencySeconds} seconds`}`}><span><ArrowDownToLine aria-hidden="true" />{turn.tokenUsage?.input ?? "—"}</span><span><ArrowUpFromLine aria-hidden="true" />{turn.tokenUsage?.output ?? "—"}</span><span><Timer aria-hidden="true" />{turn.latencySeconds === undefined ? "—" : `${turn.latencySeconds.toFixed(1)}s`}</span></div>{turn.actions.length > 0 ? <span className={styles.toolNote}>✎ Updated the common canvas</span> : turn.kind === "agent" && <span className={styles.toolNote}>Canvas unchanged this turn</span>}</div>
+              <div><strong>{turn.speakerName}</strong>{turn.kind === "skipped" && <span className={styles.judgeCheckpoint}>System notice · Turn {turn.turnNumber} skipped</span>}{turn.kind === "judge" && <span className={styles.judgeCheckpoint}>Review after turn {turn.turnNumber}</span>}<p>{turn.kind === "skipped" ? "Turn skipped after repeated invalid replies. Continuing the discussion; the canvas is unchanged." : turn.text}</p><UsageDetails details={turn.usageDetails} totals={turn.tokenUsage} latencySeconds={turn.latencySeconds} className={styles.usageMetadata} />{turn.actions.length > 0 ? <span className={styles.toolNote}>✎ Updated the common canvas</span> : turn.kind === "agent" && <span className={styles.toolNote}>Canvas unchanged this turn</span>}</div>
             </article>
           ))}
         </div>

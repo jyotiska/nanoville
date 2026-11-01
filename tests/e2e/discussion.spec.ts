@@ -72,6 +72,9 @@ test("a five-turn discussion runs through actual APIs and produces one final rev
   await expect(page.getByText("The team drafted a narrow trial.")).toBeVisible();
   const feed = page.getByRole("complementary", { name: "Chat conversation" });
   await expect(feed.getByRole("article")).toHaveCount(5);
+  await expect(feed.getByLabel("Response token usage")).toHaveCount(5);
+  await expect(feed.getByText("Cache usage unavailable", { exact: true }).first()).toBeVisible();
+  await expect(feed.getByText(/Context input .*32,768/).first()).toBeVisible();
   await page.getByRole("button", { name: "Riley Chen", exact: true }).click();
   await page.getByRole("button", { name: "Inner voice", exact: true }).click();
   await expect(page.getByText(/PRIVATE-E2E 1:/)).toBeVisible();

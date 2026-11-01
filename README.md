@@ -96,6 +96,10 @@ Pause, Resume, and Stop are on the scene. **Back to setup** pauses a running ses
 
 To watch a session created by the Chorus CLI or another client, open `http://localhost:43188/?session=SESSION_ID`.
 
+Each reply displays input, output and cached tokens, cache-read status and context usage. **Usage details** expands the individual canvas, speech, journal and retry calls with separate turn totals. Cached tokens are included in input. Context shows Chorus's enforced cap; model capacity and completion reserve appear in details. Estimated context counts use `~`; `—` means unavailable, including on older saved replies. All counts and cache controls come from Chorus, so restart the backend after upgrading it and refresh this app.
+
+New rejected canvas and speech calls show their validation reason. Validated edits discarded with a skipped turn are labelled separately. Skipped turns display aggregate cached input and context for the last attempted spoken reply; historical rejection reasons remain unavailable.
+
 ### Production
 
 ```bash

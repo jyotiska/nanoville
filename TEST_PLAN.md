@@ -64,3 +64,10 @@ All catalog models can use the judge, including MLX runners that do not enforce 
 - The selector has three provider groups and six models. Qwen 3.5 4B MLX remains the default; the OpenRouter group contains exactly DeepSeek V4.1 Flash 1017, MiniMax M3.1 Flash, and GLM 5.3 Flash.
 - Component and browser tests verify selecting/submitting each exact OpenRouter model ID and disabling only those three choices when OPENROUTER_API_KEY is missing. Browser tests explicitly blank both cloud credentials to avoid live requests.
 - Backend live checks and model reasoning requirements are recorded in Chorus's TEST_PLAN.md.
+
+
+## Response usage display — 1 November 2026
+
+- Full check passed: lint, types, 25 unit/component/client tests, production build and 14 browser journeys.
+- Shared Chorus usage display covers reply counts versus turn totals, positive/zero/unavailable cache reads, context cap versus model maximum, estimates, partial totals and old snapshots. Browser coverage verifies metrics arrive through real Chorus snapshots alongside discussion, reviews, reload and private-journal isolation.
+- New backend metrics require the upgraded Chorus service; older replies show unavailable values. Caching controls remain in Chorus.
