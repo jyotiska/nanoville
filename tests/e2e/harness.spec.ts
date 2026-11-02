@@ -38,7 +38,7 @@ test("actual tool loop completes with concise mentions, summaries, usage, and fi
   await page.getByRole("button", { name: "Start session", exact: true }).click();
   await expect(page.getByText("Solution correct", { exact: true })).toBeVisible({ timeout: 35000 });
   await expect(page.getByText("The team produced a checked shared solution.", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Evidence 1", exact: true }).first().click();
+  await page.getByRole("button", { name: "Open supporting record 1", exact: true }).first().click();
   await expect(page.getByRole("dialog", { name: "Source evidence" })).toBeVisible();
   await page.getByRole("button", { name: "Close evidence", exact: true }).click();
   const id = await page.evaluate(() => localStorage.getItem("chorus.harness.session"));
