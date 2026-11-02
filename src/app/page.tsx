@@ -1,5 +1,5 @@
-import ScenarioStudio from "@/components/scenario-studio";
+import { HarnessApp } from "@/api/chorus/harness-workspace";
 
 export default function Home() {
-  return <ScenarioStudio />;
+  return <HarnessApp mode="nanoville" />;
 }

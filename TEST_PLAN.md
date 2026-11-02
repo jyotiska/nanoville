@@ -1,5 +1,19 @@
 # nanoville test plan
 
+## Independent harness release on 2 November 2026
+
+`npm run check` passed lint, types, 27 unit/component/client tests, production build, and 17 browser journeys. The default page is the generated v2 harness workspace in Nanoville mode. New journeys verify Luna, automatic editable per-problem rosters, real tool execution, concise flat @mentions, source-evidence inspection, summaries, accounting, deterministic verification/final grading, export/reload, all fifty sprite/portrait identities, the fifty-participant scene and synchronized roster, zoom, reduced motion, and narrow-screen overflow containment.
+
+Backend regressions include a fifty-worker restart stress case, durable independent counters, frozen read-only evaluation, author-only summary access, idempotence, lock fencing, shutdown recovery, and all five checkers. Live Luna/DeepSeek reports and the observed local Qwen 0.8B limitation are recorded in Chorus's release notes.
+
+Historical component cases and browser journeys remain under explicit test-only archive switches. Production `/archive` is read-only; old energy/confidence, five-person scenes, checkpoints, and isolated journals below are archive regressions, not the current product. Shared client/UI/schema copies must be regenerated from Chorus. Run browser suites sequentially using ports 3100/43190/11435 and isolated data.
+
+## PR validation follow-up — 2 November 2026
+
+Full `npm run check` passed again: lint, type checks, all 27 unit/component/client tests, production build, and all 17 browser journeys. The source-evidence selector now follows the evaluation panel's accessible label. The real tool-loop journey explicitly loads conversation records before switching to reasoning summaries and calls, covering the stale-record crash. The generated shared record loader scopes results to the session, record kind, and agent; absent optional values render safely.
+
+## Historical compatibility cases
+
 nanoville becomes a Chorus frontend. Backend behavior is verified in Chorus; retain real component and browser regression coverage here.
 
 - Setup retains scenario, persona, location, model, length and judge selections.

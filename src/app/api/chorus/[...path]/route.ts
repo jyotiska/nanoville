@@ -4,7 +4,9 @@ async function forward(request: Request, context: { params: Promise<{ path: stri
   if (origin && origin !== `${new URL(request.url).protocol}//${request.headers.get("host")}`) return Response.json({ error: "Origin is not allowed.", code: "FORBIDDEN", requestId: crypto.randomUUID() }, { status: 403 });
   const { path } = await context.params;
   const base = process.env.CHORUS_API_URL || "http://127.0.0.1:43187";
-  const url = new URL(`/api/v1/${path.map(encodeURIComponent).join("/")}`, base);
+  const version = path[0] === "v2" ? "v2" : "v1";
+  const segments = version === "v2" ? path.slice(1) : path;
+  const url = new URL(`/api/${version}/${segments.map(encodeURIComponent).join("/")}`, base);
   url.search = new URL(request.url).search;
   const headers = new Headers();
   for (const name of ["content-type", "last-event-id"]) { const value = request.headers.get(name); if (value) headers.set(name, value); }
