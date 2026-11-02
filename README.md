@@ -1,5 +1,13 @@
 # Nanoville
 
+<p align="center">
+  <img src="public/nanoville-logo-horizontal.png" alt="nanoville logo" width="520" />
+</p>
+
+<p align="center">
+  <img src="public/nanoville-image.png" alt="nanoville discussion scene with pixel-art participants and shared canvas" width="1000" />
+</p>
+
 Nanoville is a local interface for Chorus's independent-agent harness. Chorus owns model calls, tool authorization, scheduling, validation, accounting, and SQLite persistence. This application renders committed backend state and sends user controls.
 
 ## Run locally
