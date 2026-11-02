@@ -55,6 +55,8 @@ test("actual tool loop completes with concise mentions, summaries, usage, and fi
   }
   await page.getByRole("button", { name: /Drew/ }).filter({ has: page.locator("progress") }).click();
   await expect(page.getByRole("dialog", { name: "Drew details" })).toBeVisible();
+  await page.getByRole("tab", { name: "Conversation", exact: true }).click();
+  await expect(page.getByRole("dialog").locator("article")).not.toHaveCount(0);
   await page.getByRole("tab", { name: "Reasoning summaries" }).click();
   await expect(page.getByText("Published validated work only.", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Calls", exact: true }).click();
