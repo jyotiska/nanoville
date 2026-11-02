@@ -1,64 +1,34 @@
-## Project
+# Nanoville
 
-nanoville is one local-first Next.js 16.4 application using the App Router, React 19, strict TypeScript, and local Ollama MLX models, OpenAI, or OpenRouter through Chorus. Sessions belong to Chorus and persist in SQLite. The browser remembers a session ID and renders committed backend state.
+Nanoville is a local Next.js/React application for Chorus's independent-agent harness. Chorus owns model execution, prompts, tools, validation, scheduling, persistence, cancellation, and authoritative accounting. The browser renders committed backend state and sends user controls.
 
 ## Development
 
-Use Node 24 (`.nvmrc`) and npm. Install locked dependencies with `npm ci`. Install the smoke-test browser once with `npx playwright install chromium`.
+Use Node 24 and npm. `npm run check` runs lint, generated route/type checks, unit/component/client tests, production build, and Playwright browser tests. Install Chromium once with `npx playwright install chromium`. Use targeted tests during development and the full check before delivery. Browser suites reserve 3100/43190/11435; run sequentially with chorus-web. Tests use real Chorus, fake providers, and isolated SQLite databases. Report unavailable checks.
 
-- `npm run dev`: development server.
-- `npm test`: deterministic unit, service, API, and real React component tests; no Ollama required.
-- `npm run test:watch`: watch those tests.
-- `npm run lint`: lint, including import boundary checks.
-- `npm run typecheck`: generate Next.js route types and check TypeScript.
-- `npm run build`: production build.
-- `npm run test:e2e`: browser smoke tests against the last production build and a fake Ollama server.
-- `npm run check`: lint, types, tests, production build, and browser smoke tests in order.
+Read relevant installed Next.js guides in `node_modules/next/dist/docs/` before framework changes. Keep strict TypeScript, double quotes, semicolons, and CSS Modules. No frontend model execution, speaker selection, canvas patching, simulated agent stats, or authoritative usage calculation.
 
-Use targeted tests during development and `npm run check` before handing off a change. Browser tests reserve localhost ports 3100 and 11435 and must not run alongside another smoke run. Keep verification local; CI has not been requested. Report any checks that cannot run and why.
+## Ownership
 
-## Architecture and ownership
-
-Chorus is the Python execution backend on port 43187. nanoville runs on 43188 and owns rendering and user controls. All model execution, validation, prompts, scheduling, cancellation, and persistence belong to Chorus. Sessions survive reloads and backend restarts; interrupted sessions recover as paused.
-
-- `src/components/studio/`: setup, scene, profiles, and panels.
-- `src/components/studio/stat-popups.tsx`: transient effects for committed stat changes; never calculate agent state in the browser.
-- `src/features/discussion/client/use-discussion.ts`: backend commands, committed events, session restoration, and separate observer journals.
-- `src/features/discussion/session.ts`: presentation types/selectors only; never choose or schedule a speaker/review.
-- `src/api/chorus/`: generated schemas/types and shared client from `../chorus/sdk/`. Regenerate from Chorus with `scripts/export_contracts.py`; never edit generated copies directly.
-- `src/app/api/chorus/[...path]/route.ts`: transport proxy only, configured through server-side `CHORUS_API_URL`.
-- `src/data/`: frontend artwork and location presentation. Semantic scenarios/personas/models are served by Chorus.
-- `tests/`: component/client tests and browser journeys against real Chorus and fake Ollama. Backend regression source references live in Chorus's `tests/reference/nanoville/` and executable regressions in its Python tests.
-
-Never call Ollama, OpenAI, or OpenRouter from the application. Do not duplicate backend policies or apply canvas edits in the browser. Journals remain outside public context. Browser tests reserve ports 3100, 43190, and 11435. See TEST_PLAN.md.
+- `src/app/page.tsx` opens the shared harness workspace in Nanoville mode.
+- `src/api/chorus/harness-workspace.tsx`, its CSS, client, contracts, and usage files are generated from `../chorus/sdk/`. Modify the canonical source and run `scripts/export_contracts.py`; never hand-edit copies.
+- `src/app/api/chorus/[...path]/route.ts` is a thin same-origin v2/legacy-read proxy, configured only with server-side `CHORUS_API_URL`.
+- The new scene supports 2–50 personas using packaged custom animated sprites, pan/zoom, search, keyboard selection, and reduced motion. Artwork/manifest belong to Chorus; animation reflects committed worker state and canvas-lock ownership.
+- Existing studio components and v1 schemas remain for historical decoding/regression compatibility. `/archive` is read-only in production. Explicit test switches exercise old behavior without making it the default product.
 
 ## Behavioral invariants
 
-- Commit a valid spoken contribution, the accepted or preserved canvas, and journal together. An unchanged valid canvas is a normal no-edit turn. After bounded canvas validation retries fail, preserve the previous canvas (even if empty) and continue with a useful spoken contribution that does not claim an edit. No-edit turns count toward rotation, turn limits, and judge checkpoints; show their unchanged status without a blocking error. Keep rejected drafts out of retry context. Transport failures pause and preserve prior work; Resume retries pending work.
-- Canvas generation returns one strict JSON operation: create only while empty, unchanged, replace one section's direct body while preserving descendants, or append one child section. Paths include every ancestor heading. Evidence is outside the editable region; the browser receives only the complete validated canvas, never edit drafts.
-- After three invalid spoken replies, discard the pending canvas edit and skip the slot without pausing. Preserve prior canvas and journals; do not generate a journal or invent speech for a skipped slot. Record an explicit system notice with empty text, advance rotation, and count the slot toward the turn limit and checkpoint timing. Participants and the judge receive skipped slots as system notices; the judge must distinguish skipped slots from actual contributions. Cancellation still discards pending work, including late skip responses.
-- A journal failure yields an unavailable entry and preserves valid public output. Cancelling the overall operation discards the pending turn.
-- Treat the scenario as the only verified factual source. The server preserves its evidence section verbatim in revised canvases; models generate the proposed plan and open decisions. Generated measurements, dates, and capabilities remain proposals or unknowns. Judge strengths and positive requirement assessments quote the current canvas; validate those excerpts and complete sentences before publication. Keep unpublished judge drafts out of retry context.
-- Private journals are observer-only. Never send them to participants or the judge, or use them to update persona stats.
-- Chorus updates bounded energy/confidence and public change reasons only with valid participant turns. Personality settings and state rules belong in Chorus; cancelled/skipped work and judge reviews do not alter stats. Restoring a session must not replay old floating effects.
-- Judge checkpoints occur after every five participant slots, including skipped slots, except at the turn limit, which triggers only a final review. Judge messages do not consume turns or change participant rotation.
-- Stop cancels pending work and, when enabled, reviews only committed work. Pause and Back cancel pending turns or reviews immediately. Late responses cannot commit.
-- The final deliverable is the same shared Markdown canvas; there is no extra summary request.
-- Retain full public history. Context-budget overflow pauses safely; never silently truncate or summarize history.
+Luna is the default. Each problem auto-selects its five relevant agents; the observer may edit the roster before starting. Rerenders/catalog refreshes cannot overwrite edits. A problem switch initializes its own roster. Turn caps are per agent; show current turn, cap, and completed cycles.
 
-## Change workflow
+The board stays flat. Each post is one or two sentences, <=60 words/400 characters; reactions use selected @FirstName mentions and share the three-post-per-turn allowance. Energy/confidence and floating stat effects are absent from new sessions.
 
-Before editing, inspect the relevant implementation, tests, and docs. State assumptions that affect behavior; ask when materially different interpretations remain. Make the smallest complete change. Do not reformat unrelated files or introduce abstractions without a concrete need.
+Only Chorus grants canvas lockfile leases and commits validated edits/changelog entries. Published posts and edits survive later cycle failure. Pause, Stop, and restart invalidate late publication while preserving committed work and budgets. Reload/reconnection must not duplicate records, roll back revisions, or replay old transient activity.
 
-Read the relevant installed Next.js guide in `node_modules/next/dist/docs/` before changing framework code. Follow installed documentation over remembered APIs. Do not edit `node_modules/`, `.next/`, generated types, or other generated files to implement behavior.
+New structured reasoning summaries are visible to their author, observer, and final judge, but not peers. Historical journals retain observer-only isolation. Provider-private reasoning is excluded. Hidden adversary assignment metadata must never enter judge/peer prompts. Never log content or credentials.
 
-Keep requests and responses aligned through shared schemas. Test invalid external data and the behavioral invariant affected by a change. Preserve existing regression cases when moving modules; test public behavior instead of component internals. Use real React rendering, not custom implementations of hooks.
+The judge runs only at the end against a frozen result with read-only tools. Correctness is deterministic; qualitative conversation/agent grades require source references. Usage aggregates come from the unique backend call ledger and distinguish unknown, zero, reported, and estimated values. Retain complete history; context overflow pauses rather than truncating silently.
 
-Prompt changes belong in Chorus and require its regression tests and prompt-version update. Preserve separation of public context and private journals. Model logs contain metadata and rejection categories, never prompt or journal contents.
-
-Use strict types, `@/` imports, double quotes, semicolons, and CSS Modules for feature styles. Preserve nearby conventions in existing UI primitives. Keep model addresses in the Chorus environment. Use `CHORUS_API_URL` in `.env.local`, with a safe `.env.example`.
-
-Update `README.md` when behavior or setup changes and update this map when ownership or verification commands change.
+Update README.md, TEST_PLAN.md, and ownership guidance when behavior or verification changes.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

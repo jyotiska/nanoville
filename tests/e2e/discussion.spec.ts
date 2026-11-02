@@ -15,7 +15,7 @@ for (const model of ["deepseek/deepseek-v4.1-flash-1017", "minimax/minimax-m3.1-
       expect(route.request().postDataJSON().model).toBe(model);
       await route.fulfill({ status: 502, json: { code: "MODEL_REQUEST_FAILED", error: "OpenRouter selection verified.", requestId: "test" } });
     });
-    await page.goto("/");
+    await page.goto("/archive");
     const select = page.getByRole("combobox", { name: "Model", exact: true });
     await expect(select).toHaveValue("qwen3.5:4b-mlx");
     await expect(select.locator("optgroup")).toHaveCount(3);
@@ -27,7 +27,7 @@ for (const model of ["deepseek/deepseek-v4.1-flash-1017", "minimax/minimax-m3.1-
 }
 
 test("missing OpenRouter credentials leave local models usable", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/archive");
   await expect(page.getByRole("button", { name: /Enter discussion/ })).toBeEnabled();
   const group = page.getByRole("combobox", { name: "Model", exact: true }).locator('optgroup[label="OpenRouter"]');
   await expect(group.locator("option")).toHaveCount(3);
@@ -52,7 +52,7 @@ test.beforeEach(async ({ request }) => {
 
 test("a 20-turn discussion completes three checkpoints and one final judgement", async ({ page, request }) => {
   test.setTimeout(60000);
-  await page.goto("/");
+  await page.goto("/archive");
   await page.getByRole("combobox", { name: "Model", exact: true }).selectOption("qwen3.5:0.8b-mlx");
   await page.getByLabel("Number of turns").selectOption("20");
   await page.getByRole("combobox", { name: "Judge", exact: true }).selectOption("yes");
@@ -64,7 +64,7 @@ test("a 20-turn discussion completes three checkpoints and one final judgement",
 });
 
 test("a five-turn discussion runs through actual APIs and produces one final review with private journals isolated", async ({ page, request }) => {
-  await page.goto("/");
+  await page.goto("/archive");
   await page.getByLabel("Number of turns").selectOption("5");
   await page.getByRole("combobox", { name: "Judge", exact: true }).selectOption("yes");
   await page.getByRole("button", { name: /Enter discussion/ }).click();
@@ -84,7 +84,7 @@ test("a five-turn discussion runs through actual APIs and produces one final rev
 
 test("Pause cancels in-flight work, Resume retries it, and Stop reviews only committed work", async ({ page, request }) => {
   await request.post(`${modelHost}/reset`, { data: { canvasDelayMs: 1000 } });
-  await page.goto("/");
+  await page.goto("/archive");
   await page.getByRole("combobox", { name: "Judge", exact: true }).selectOption("yes");
   await page.getByRole("button", { name: /Enter discussion/ }).click();
   await expect.poll(async () => (await (await request.get(`${modelHost}/state`)).json()).canvasCalls).toBe(1);
@@ -101,7 +101,7 @@ test("Pause cancels in-flight work, Resume retries it, and Stop reviews only com
 });
 
 test("a checkpoint appears after five contributions and Back to setup starts a fresh discussion", async ({ page, request }) => {
-  await page.goto("/");
+  await page.goto("/archive");
   await page.getByLabel("Number of turns").selectOption("10");
   await page.getByRole("combobox", { name: "Judge", exact: true }).selectOption("yes");
   await page.getByRole("button", { name: /Enter discussion/ }).click();
@@ -118,7 +118,7 @@ test("a checkpoint appears after five contributions and Back to setup starts a f
 
 test("invalid canvas drafts keep the discussion running and preserve the last valid document", async ({ page, request }) => {
   await request.post(`${modelHost}/reset`, { data: { invalidCanvasTurn: 2 } });
-  await page.goto("/");
+  await page.goto("/archive");
   await page.getByLabel("Number of turns").selectOption("5");
   await page.getByRole("combobox", { name: "Judge", exact: true }).selectOption("yes");
   await page.getByRole("button", { name: /Enter discussion/ }).click();
@@ -137,7 +137,7 @@ test("invalid canvas drafts keep the discussion running and preserve the last va
 
 test("repeated invalid speech is skipped and the next participant continues with the saved canvas", async ({ page, request }) => {
   await request.post(`${modelHost}/reset`, { data: { invalidSpeechTurn: 2 } });
-  await page.goto("/");
+  await page.goto("/archive");
   await page.getByLabel("Number of turns").selectOption("5");
   await page.getByRole("combobox", { name: "Judge", exact: true }).selectOption("yes");
   await page.getByRole("button", { name: /Enter discussion/ }).click();
@@ -159,7 +159,7 @@ test("repeated invalid speech is skipped and the next participant continues with
 
 
 test("reload restores a paused durable session without starting duplicate work", async ({ page, request }) => {
-  await page.goto("/");
+  await page.goto("/archive");
   await page.getByRole("button", { name: /Enter discussion/ }).click();
   await expect(page.getByRole("complementary", { name: "Chat conversation" }).getByRole("article")).toHaveCount(1);
   await page.getByRole("button", { name: "Ⅱ Pause" }).click();
@@ -177,7 +177,7 @@ test("reload restores a paused durable session without starting duplicate work",
 test("personality stats animate, stay live in the profile, and survive reload", async ({ page, request }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await request.post(`${modelHost}/reset`, { data: { canvasDelayMs: 250 } });
-  await page.goto("/");
+  await page.goto("/archive");
   await page.getByLabel("Number of turns").selectOption("5");
   await page.getByRole("button", { name: /Enter discussion/ }).click();
   await expect(page.getByText("-9 energy", { exact: true }).first()).toBeAttached();
@@ -212,7 +212,7 @@ test("opens and controls a session created outside nanoville", async ({ page, re
   const scenario = options.find((s: { id: string }) => s.id === "chorus-web:debate");
   const created = await (await request.post("/api/chorus/sessions", { data: { scenarioId: scenario.id, participantIds: scenario.suggestedAgents, model: "qwen3.5:4b-mlx", maxTurns: 5, judgeEnabled: false } })).json();
   await request.post(`/api/chorus/sessions/${created.id}/commands`, { data: { commandId: "external-start", expectedRevision: 0, action: "start" } });
-  await page.goto(`/?session=${created.id}`);
+  await page.goto(`/archive?session=${created.id}`);
   await expect(page.getByRole("heading", { name: "debate", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Ⅱ Pause" }).click();
   await expect(page.getByRole("button", { name: "▶ Resume" })).toBeVisible();
@@ -222,7 +222,7 @@ test("opens and controls a session created outside nanoville", async ({ page, re
 test("multiple private adversaries survive reload while participants and every judge call stay blind", async ({ page, request }) => {
   test.setTimeout(60000);
   await request.post(`${modelHost}/reset`, { data: { canvasDelayMs: 150 } });
-  await page.goto("/");
+  await page.goto("/archive");
   await page.getByRole("checkbox", { name: "Adversary: Riley Chen" }).check();
   await page.getByRole("checkbox", { name: "Adversary: Jordan Brooks" }).check();
   await page.getByRole("combobox", { name: "Model", exact: true }).selectOption("qwen3.5:0.8b-mlx");
