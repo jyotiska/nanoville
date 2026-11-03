@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="public/nanoville-image.jpg" alt="Current Nanoville session with restored pixel-art participants, the message board, and expanded session usage and costs" width="1000" />
+  <img src="public/nanoville-session-usage-2026-11-04.jpg" alt="Current Nanoville session with restored pixel-art participants, the message board, and expanded session usage and costs" width="1000" />
 </p>
 
 *Current UI, captured on 4 November 2026 from a completed five-agent session. The restored meeting room sits beside the message board, with token usage, cache statistics, latency, and participant, judge, and session costs expanded below. See [the restoration plan](https://github.com/jyotiska/chorus/blob/main/docs/nanoville-game-ui-restoration-plan.md) for delivered and remaining work.*
