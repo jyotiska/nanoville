@@ -10,10 +10,10 @@ Read relevant installed Next.js guides in `node_modules/next/dist/docs/` before 
 
 ## Ownership
 
-- `src/app/page.tsx` opens the shared harness workspace in Nanoville mode.
+- `src/app/page.tsx` opens the Nanoville-owned game presentation in `src/components/game/`. Typed presentation slots in the shared harness retain session lifecycle, commands, records, and inspectors.
 - `src/api/chorus/harness-workspace.tsx`, its CSS, client, contracts, and usage files are generated from `../chorus/sdk/`. Modify the canonical source and run `scripts/export_contracts.py`; never hand-edit copies.
 - `src/app/api/chorus/[...path]/route.ts` is a thin same-origin v2/legacy-read proxy, configured only with server-side `CHORUS_API_URL`.
-- The new scene supports 2–50 personas using packaged custom animated sprites, pan/zoom, search, keyboard selection, and reduced motion. Artwork/manifest belong to Chorus; animation reflects committed worker state and canvas-lock ownership.
+- `src/components/game/` owns compact setup location selection (without a scene preview), live-session furnished five-person room zones, camera zoom/scroll, character search/focus, and same-browser location preferences. The scene supports 2–50 personas using the original local pixel artwork. `src/components/game/agent-art.ts` maps all fifty stable IDs to the fifteen original designs by role; scene sprites and all portrait surfaces share this mapping. The optional SDK portrait renderer keeps chorus-web on its existing backend artwork. Motion reflects committed worker state and valid canvas-lock ownership. Extended environments remain planned.
 - Existing studio components and v1 schemas remain for historical decoding/regression compatibility. `/archive` is read-only in production. Explicit test switches exercise old behavior without making it the default product.
 
 ## Behavioral invariants

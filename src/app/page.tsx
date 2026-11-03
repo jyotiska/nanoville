@@ -1,5 +1,5 @@
-import { HarnessApp } from "@/api/chorus/harness-workspace";
+import GameApp from "@/components/game/game-app";
 
 export default function Home() {
-  return <HarnessApp mode="nanoville" />;
+  return <GameApp />;
 }

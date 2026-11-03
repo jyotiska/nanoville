@@ -1,0 +1,53 @@
+.game { padding-inline:clamp(12px,2.5vw,40px); }
+.game > header { min-height:76px; }
+.game > header img { object-fit:contain; }
+.world { min-width:0; }
+.locations { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.game .locations button { display:flex; gap:10px; align-items:center; padding:5px 12px 5px 5px; font-size:12px; }
+.locations img { border-radius:3px; object-fit:cover; }
+.locationLabel { margin:0 0 8px; font-size:12px; font-weight:500; }
+.game .setupLocations button { padding:8px 12px; }
+.game button[aria-pressed=true] { border-color:#47664b; background:#e5eddb; }
+.sceneToolbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 14px; background:#284b3e; color:#faf5e5; border:2px solid #203b32; font-size:12px; }
+.sceneToolbar label { margin-left:auto; display:flex; align-items:center; gap:8px; }
+.sceneToolbar input { max-width:90px; }
+.sceneToolbar span { opacity:.8; }
+.game .sceneToolbar button { padding:4px 8px; font-size:11px; }
+.viewport { overflow:auto; max-height:650px; border:3px solid #526253; background:#b5bda2; overscroll-behavior:contain; scrollbar-color:#677b62 #dce1d0; }
+.rooms { display:grid; gap:12px; background:#a4b293; }
+.room { position:relative; aspect-ratio:1.5; background-size:100% 100%; image-rendering:pixelated; }
+.roomLabel { position:absolute; top:8px; left:10px; background:#f9f4df; color:#29483a; border:1px solid #56634b; padding:2px 8px; font-size:11px; }
+.game .character { position:absolute; transform:translate(-50%,-50%); display:flex; align-items:center; flex-direction:column; padding:0; border:0; background:transparent; width:18%; cursor:pointer; }
+.character:hover { filter:brightness(1.08); }
+.sprite { display:block; width:100%; height:auto; aspect-ratio:1; object-fit:contain; image-rendering:pixelated; transform-origin:50% 90%; }
+.game .pixelPortrait { object-fit:contain; image-rendering:pixelated; }
+.name { margin-top:-10px; padding:1px 7px; font-size:11px; font-weight:500; color:#203b32; background:#fffce8; border:1px solid #ad9e71; line-height:1.5; }
+.selected::before { content:""; width:15px; height:19px; background:#8fcb64; border:2px solid #325c35; transform:rotate(45deg); position:absolute; top:0; }
+.activity { position:absolute; bottom:100%; background:#fff5bd; color:#304432; border:1px solid #8b885e; border-radius:6px; padding:3px 8px; font-size:10px; white-space:nowrap; margin-bottom:4px; }
+.selected .activity { bottom:auto; top:100%; }
+.working { animation:working 1.8s ease-in-out infinite; }
+.editing { animation:editing 1.2s ease-in-out infinite; }
+@keyframes working { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-3px); } }
+@keyframes editing { 0%,100% { transform:rotate(-1deg); } 50% { transform:rotate(1deg); } }
+.hud { background:#edf0e1; border:1px solid #c1cbb4; padding:12px; }
+.hud label { font-size:11px; display:flex; align-items:center; gap:12px; }
+.hud input { max-width:220px; padding:5px 8px!important; }
+.team { display:flex; flex-wrap:wrap; gap:5px; max-height:100px; overflow:auto; margin-top:10px; }
+.game .team button { font-size:11px; padding:4px 8px; }
+.speech { display:flex; flex-direction:column; gap:5px; border:2px solid #49604c; padding:12px 16px; background:#fffde9; margin-top:10px; text-decoration:none; font-size:12px; }
+.speech strong { font-size:10px; }
+.previewNote { font-size:12px; color:#5a6958; }
+.workspace { display:grid; grid-template-columns:minmax(0,1.8fr) minmax(290px,1fr); gap:18px; align-items:start; }
+.mainWorld,.discussion { min-width:0; }
+.discussion > section { margin:0; }
+.discussion > section > div:last-child { max-height:710px; }
+.controls > div { padding-top:20px; padding-bottom:16px; }
+.controls h1 { font-size:28px; }
+.disclosure { margin:14px 0; border:1px solid #ccd4c3; background:#f8f9f0; padding:12px; }
+.disclosure summary { cursor:pointer; font-size:13px; font-weight:500; }
+.disclosure > section { margin-top:14px; }
+.documents { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:18px; }
+.game dialog { border:3px solid #637a56; border-radius:12px; background:#fffef0; }
+@media(prefers-reduced-motion:reduce) { .sprite { animation:none; } }
+@media(max-width:900px) { .workspace,.documents { grid-template-columns:1fr; } .viewport { max-height:520px; } }
+@media(max-width:600px) { .locations img { width:42px; height:32px; } .game .locations button { font-size:10px; flex:1; padding:4px; gap:4px; } .sceneToolbar label { margin-left:0; } .hud label { flex-wrap:wrap; } .viewport { max-height:420px; } .controls h1 { font-size:24px; } }

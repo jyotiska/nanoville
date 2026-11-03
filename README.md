@@ -5,8 +5,10 @@
 </p>
 
 <p align="center">
-  <img src="public/nanoville-image.png" alt="nanoville discussion scene with pixel-art participants and shared canvas" width="1000" />
+  <img src="public/nanoville-image.jpg" alt="Current Nanoville session with restored pixel-art participants in the meeting room, the message board, and shared canvas" width="1000" />
 </p>
+
+*Current UI, captured on 4 November 2026 from a completed five-agent session. The restored meeting room sits beside the message board, with the shared canvas below. See [the restoration plan](https://github.com/jyotiska/chorus/blob/main/docs/nanoville-game-ui-restoration-plan.md) for delivered and remaining work.*
 
 Nanoville is a local interface for Chorus's independent-agent harness. Chorus owns model calls, tool authorization, scheduling, validation, accounting, and SQLite persistence. This application renders committed backend state and sends user controls.
 
@@ -49,7 +51,7 @@ The final report combines deterministic answer correctness, a conversation grade
 
 The session header and participant inspector show input/output/cached tokens, cache use and utilization, provider-call latency, and cost. Totals include failed attempts and retries. Reported charges and estimates are labelled separately; missing provider metadata stays unknown. Session wall time is separate from provider-call latency, and cached tokens are included in input tokens.
 
-Nanoville includes fifty custom animated sprite sheets and a zoomable, scrollable research commons for up to fifty concurrent participants, with a synchronized searchable roster and reduced-motion support.
+Nanoville now uses its own game presentation around the shared harness. Setup offers a compact location selector for the corporate meeting room, garden, or university classroom, without a scene preview, character search, or zoom controls. The interactive scene appears after starting a session. Live sessions place participants in furnished five-person room zones, with scroll/zoom, search-to-focus, activity bubbles, character inspectors, and a latest-published-post panel. Location choices persist per session in the same browser; a new browser uses the default room. Detailed session accounting is expandable. Nanoville uses its original seated pixel-art characters throughout the scene, setup picker, roster, and profile popups. Scene characters scale with each furnished room, so their proportions stay consistent with the furniture across viewport sizes and zoom levels. All fifty persona IDs have stable role-based assignments to the fifteen original designs, so related personas can share artwork. chorus-web retains its current SVG portraits and sprite sheets. Bespoke expanded environments remain upcoming restoration work. Reduced-motion preferences stop sprite animation.
 
 Pause cancels pending work while retaining committed records and consumed turn budgets; Resume continues within those budgets. Stop freezes an early result for final evaluation. Reload restores the saved session; `?session=SESSION_ID` opens a specific session. Closing the browser leaves backend execution running. Back to setup pauses active work. A backend restart recovers interrupted sessions as paused. Context overflow pauses with saved work intact.
 

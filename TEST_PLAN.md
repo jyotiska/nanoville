@@ -1,3 +1,7 @@
+## Game presentation restoration — 4 November 2026
+
+The home route uses Nanoville-owned presentation slots around the current harness. New browser coverage verifies location selection in setup without a scene preview, character search, or zoom controls, carryover into a new session, per-session reload persistence, character inspector opening/Escape, and search/focus of the fiftieth character across furnished room zones. Screenshots are captured for setup, classroom, and meeting-room review. Search and zoom remain available in live sessions. Check sprite-to-chair proportions at wide desktop and narrow viewport sizes and after changing scene zoom; sprites must scale with their own room, including in large casts. Existing v2 and legacy suites remain required. The original local pixel sprites are now restored. Browser coverage verifies that all fifty scene images load from local `/agents/` artwork and that setup, scene, and profile use the same image for an identity. Transient contribution effects remain planned.
+
 # nanoville test plan
 
 ## Independent harness release on 2 November 2026

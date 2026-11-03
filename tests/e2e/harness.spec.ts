@@ -81,7 +81,9 @@ test("fifty-agent roster is complete, artwork loads, and narrow screens contain 
   await page.goto(`/?session=${state.id}`);
   await expect(page.getByRole("progressbar")).toHaveCount(50);
   if (baseURL?.includes(":3100")) {
-    await expect(page.getByRole("img", { name: /animated sprite/ })).toHaveCount(50);
+    await expect(page.getByRole("img", { name: /pixel sprite/ })).toHaveCount(50);
+    const sprites = page.getByRole("img", { name: /pixel sprite/ });
+    await expect.poll(() => sprites.evaluateAll((nodes) => nodes.every((node) => node instanceof HTMLImageElement && node.complete && node.naturalWidth > 0 && node.getAttribute("src")?.startsWith("/agents/")))).toBe(true);
     await page.getByRole("slider", { name: "Scene zoom" }).fill("1.25");
   }
   expect((await request.get("/api/chorus/v2/assets/oakley/sprite.svg")).status()).toBe(200);
@@ -91,4 +93,50 @@ test("fifty-agent roster is complete, artwork loads, and narrow screens contain 
   await expect(page.getByRole("heading", { name: "Participants", exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
   await page.screenshot({ path: `test-results/harness-${baseURL?.includes(":3100") ? "nanoville" : "chorus"}-50-mobile.png`, fullPage: true });
+});
+
+test("setup keeps location choices without a preview and carries them into sessions", async ({ page, request }) => {
+  await page.goto("/");
+  await expect(page.getByRole("group", { name: "Choose a location" })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Find a character" })).toHaveCount(0);
+  await expect(page.getByRole("slider", { name: "Scene zoom" })).toHaveCount(0);
+  await expect(page.getByRole("img", { name: /pixel sprite/ })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Nanoville world" })).toHaveCount(0);
+  await expect(page.getByRole("img", { name: "Alex portrait", exact: true })).toHaveAttribute("src", "/agents/engineer.webp");
+  await page.getByRole("button", { name: "Garden", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Garden", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.screenshot({ path: "test-results/nanoville-setup.png", fullPage: true });
+  const catalog = await (await request.get("/api/chorus/v2/catalog")).json();
+  const response = await request.post("/api/chorus/v2/sessions", { data: { problemId: "production-mix", participantIds: catalog.agents.slice(0, 5).map((a: { id: string }) => a.id), model: "qwen3.5:4b-mlx", maxTurnsPerAgent: 1, judgeEnabled: false } });
+  const state = await response.json();
+  await page.goto(`/?session=${state.id}`);
+  await expect(page.getByRole("searchbox", { name: "Find a character" })).toBeVisible();
+  await expect(page.getByRole("slider", { name: "Scene zoom" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Garden", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "University classroom", exact: true }).click();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "University classroom", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: /^Alex, Ready$/ }).click();
+  await expect(page.getByRole("dialog", { name: "Alex details" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Alex pixel sprite", exact: true })).toHaveAttribute("src", "/agents/engineer.webp");
+  await expect(page.getByRole("dialog").getByRole("img", { name: "Alex portrait" })).toHaveAttribute("src", "/agents/engineer.webp");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.screenshot({ path: "test-results/nanoville-classroom.png", fullPage: true });
+  await page.getByRole("button", { name: "Corporate meeting room", exact: true }).click();
+  await page.screenshot({ path: "test-results/nanoville-meeting-room.png", fullPage: true });
+});
+
+test("large world search focuses characters in later furnished rooms", async ({ page, request }) => {
+  const catalog = await (await request.get("/api/chorus/v2/catalog")).json();
+  const response = await request.post("/api/chorus/v2/sessions", { data: { problemId: "production-mix", participantIds: catalog.agents.map((a: { id: string }) => a.id), model: "qwen3.5:4b-mlx", maxTurnsPerAgent: 1, judgeEnabled: false } });
+  const state = await response.json();
+  await page.goto(`/?session=${state.id}`);
+  await page.getByRole("searchbox", { name: "Find a character" }).fill("Indigo");
+  await page.getByRole("button", { name: "Indigo", exact: true }).click();
+  const character = page.getByRole("button", { name: /^Indigo, Ready$/ });
+  await expect(character).toBeFocused();
+  await character.press("Enter");
+  await expect(page.getByRole("dialog", { name: "Indigo details" })).toBeVisible();
 });
