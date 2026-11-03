@@ -5,10 +5,10 @@
 </p>
 
 <p align="center">
-  <img src="public/nanoville-image.jpg" alt="Current Nanoville session with restored pixel-art participants in the meeting room, the message board, and shared canvas" width="1000" />
+  <img src="public/nanoville-image.jpg" alt="Current Nanoville session with restored pixel-art participants, the message board, and expanded session usage and costs" width="1000" />
 </p>
 
-*Current UI, captured on 4 November 2026 from a completed five-agent session. The restored meeting room sits beside the message board, with the shared canvas below. See [the restoration plan](https://github.com/jyotiska/chorus/blob/main/docs/nanoville-game-ui-restoration-plan.md) for delivered and remaining work.*
+*Current UI, captured on 4 November 2026 from a completed five-agent session. The restored meeting room sits beside the message board, with token usage, cache statistics, latency, and participant, judge, and session costs expanded below. See [the restoration plan](https://github.com/jyotiska/chorus/blob/main/docs/nanoville-game-ui-restoration-plan.md) for delivered and remaining work.*
 
 Nanoville is a local interface for Chorus's independent-agent harness. Chorus owns model calls, tool authorization, scheduling, validation, accounting, and SQLite persistence. This application renders committed backend state and sends user controls.
 
